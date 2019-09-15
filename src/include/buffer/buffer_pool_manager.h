@@ -167,6 +167,14 @@ class BufferPoolManager {
   /** List of free pages. */
   std::list<frame_id_t> free_list_;
   /** This latch protects shared data structures. We recommend updating this comment to describe what it protects. */
+  // protect: pages_, page_table_, free_list_
   std::mutex latch_;
+
+  inline void IncremPin(Page* page) { page->pin_count_++; }
+
+  inline void DecremPin(Page *page) { page->pin_count_++; }
+
+  void ResetPage(Page *page, page_id_t new_page);
 };
+
 }  // namespace bustub

@@ -43,20 +43,113 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
   // 3.     Delete R from the page table and insert P.
   // 4.     Update P's metadata, read in the page content from disk, and then return a pointer to P.
   frame_id_t frame_idx = -1;
+  Page *temp_page = nullptr;
+
+  // for modifying global data structure
+  latch_.lock();
   if (page_table_.find(page_id) != page_table_.end()) {
     frame_idx = page_table_[page_id];
-    
+    // pin first and then modify ref count
+    // s.t. this page will not be victimized
+    temp_page = pages_ + frame_idx;
+    replacer_->Pin(frame_idx);
+    // get write lock to update pin
+    temp_page->WLatch();
+    latch_.unlock();
+    IncremPin(temp_page);
+    temp_page->WUnlatch();
+
+  } else if (free_list_.size() > 0) {
+    frame_idx = free_list_.front();
+    free_list_.pop_front();
+    page_table_[page_id] = frame_idx;
+    temp_page = pages_ + frame_idx;
+    replacer_->Pin(frame_idx);
+    temp_page->WLatch();
+    latch_.unlock();
+    // reset memory and update meta data
+    ResetPage(temp_page, page_id);
+    disk_manager_->ReadPage(page_id, temp_page->data_);
+    temp_page->WUnlatch();
+
+  } else {
+    // if nothing to evict
+    if (!replacer_->Victim(&frame_idx)) {
+      latch_.unlock();
+      return nullptr;
+    }
+    frame_id_t old_page_id = temp_page->GetPageId();
+    temp_page = pages_ + frame_idx;
+    page_table_.erase(old_page_id);
+    page_table_[page_id] = frame_idx;
+    temp_page->WLatch();
+    latch_.unlock();
+    if (temp_page->IsDirty()) {
+      disk_manager_->WritePage(old_page_id, temp_page->data_);
+    }
+    ResetPage(temp_page, page_id);
+    disk_manager_->ReadPage(page_id, temp_page->data_);
+    temp_page->WUnlatch();
   }
-  return nullptr;
+  return temp_page;
 }
 
-bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) { 
-  return false; 
+
+void BufferPoolManager::ResetPage(Page *page, page_id_t new_page_id) {
+  page->ResetMemory();
+  page->page_id_ = new_page_id;
+  page->is_dirty_ = false;
+  page->pin_count_ = (new_page_id == INVALID_PAGE_ID)? 0: 1;
+}
+
+bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
+  frame_id_t frame_idx = -1;
+  Page *temp_page = nullptr;
+
+  latch_.lock();
+  if (page_table_.find(page_id) != page_table_.end()) {
+    frame_idx = page_table_[page_id];
+    temp_page = pages_ + frame_idx;
+    temp_page->WLatch();
+    if (temp_page->GetPinCount() == 0) {
+      latch_.unlock();
+      return false;
+    }
+    DecremPin(temp_page);
+    if (temp_page->GetPinCount() == 0)
+      replacer_->Unpin(frame_idx);
+    latch_.unlock();
+    temp_page->is_dirty_ &= is_dirty;
+  } else {
+    latch_.unlock();
+  }
+  return true;
 }
 
 bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
   // Make sure you call DiskManager::WritePage!
-  return false;
+  frame_id_t frame_idx = -1;
+  Page *temp_page = nullptr;
+  latch_.lock();
+  if (page_table_.find(page_id) != page_table_.end()) {
+    // update page_table, free_list
+    frame_idx = page_table_[page_id];
+    temp_page = pages_ + frame_idx;
+    free_list_.push_back(frame_idx);
+    page_table_.erase(page_id);
+    replacer_->Pin(frame_idx);
+    temp_page->WLatch();
+    latch_.unlock();
+    if (temp_page->IsDirty()) {
+      disk_manager_->WritePage(page_id, temp_page->data_);
+    }
+    ResetPage(temp_page, INVALID_PAGE_ID);
+    return true;
+  } else {
+    latch_.unlock();
+    return false;
+  }
+  
 }
 
 Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
