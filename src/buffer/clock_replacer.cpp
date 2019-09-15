@@ -31,7 +31,6 @@ bool ClockReplacer::Victim(frame_id_t *frame_id) {
   while (clock_map_[clock_hand_] != 0) {
     if (clock_map_[clock_hand_] == 1) {
       any_to_evict = true;
-      evict_size_--;
       clock_map_[clock_hand_] = 0;
     }
     clock_hand_ = (clock_hand_ + 1) % capacity_;
@@ -44,6 +43,7 @@ bool ClockReplacer::Victim(frame_id_t *frame_id) {
   }
   *frame_id = clock_hand_;
   clock_map_[clock_hand_] = -1;
+  evict_size_--;
   latch_.unlock();
   return true;
 }
@@ -56,9 +56,8 @@ void ClockReplacer::Pin(frame_id_t frame_id) {
     return;
   latch_.lock();
   if (clock_map_[frame_id] >= 0) {
-    if (clock_map_[frame_id] == 1) 
-      evict_size_--;
     clock_map_[frame_id] = -1;
+    evict_size_--;
   }
   latch_.unlock();
 }
@@ -68,10 +67,10 @@ void ClockReplacer::Unpin(frame_id_t frame_id) {
   if (frame_id < 0 || frame_id >= capacity_) 
     return;
   latch_.lock();
-  if (clock_map_[frame_id] <= 0) {
+  if (clock_map_[frame_id] < 0) {
     evict_size_++;
-    clock_map_[frame_id] = 1;
   }
+  clock_map_[frame_id] = 1;
   latch_.unlock();
 }
 
