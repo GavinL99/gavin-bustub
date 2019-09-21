@@ -79,7 +79,7 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
       latch_.unlock();
       return nullptr;
     }
-    frame_id_t old_page_id = temp_page->GetPageId();
+    frame_id_t old_page_id = pages_[frame_idx].GetPageId();
     temp_page = pages_ + frame_idx;
     page_table_.erase(old_page_id);
     page_table_[page_id] = frame_idx;
@@ -183,7 +183,7 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
       return nullptr;
     }
     *page_id = disk_manager_->AllocatePage();
-    frame_id_t old_page_id = temp_page->GetPageId();
+    frame_id_t old_page_id = pages_[frame_idx].GetPageId();
     temp_page = pages_ + frame_idx;
     page_table_.erase(old_page_id);
     page_table_[*page_id] = frame_idx;
