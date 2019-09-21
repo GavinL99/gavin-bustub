@@ -14,7 +14,8 @@
 
 namespace bustub {
 
-ClockReplacer::ClockReplacer(size_t num_pages) : capacity_(static_cast<frame_id_t>(num_pages)), clock_map_(num_pages, -1) {
+ClockReplacer::ClockReplacer(size_t num_pages)
+    : capacity_(static_cast<frame_id_t>(num_pages)), clock_map_(num_pages, -1) {
   clock_hand_ = 0;
   evict_size_ = 0;
 }

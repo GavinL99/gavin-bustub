@@ -146,10 +146,9 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
     temp_page->is_dirty_ = false;
     latch_.unlock();
     return true;
-  } 
+  }
   latch_.unlock();
   return false;
-
 }
 
 Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
