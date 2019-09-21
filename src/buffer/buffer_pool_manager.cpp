@@ -117,7 +117,8 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
       return false;
     }
     DecremPin(temp_page);
-    if (temp_page->GetPinCount() == 0) replacer_->Unpin(frame_idx);
+    if (temp_page->GetPinCount() == 0) 
+      replacer_->Unpin(frame_idx);
     temp_page->is_dirty_ |= is_dirty;
     latch_.unlock();
   } else {
@@ -155,7 +156,7 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
   // 1.   If all the pages in the buffer pool are pinned, return nullptr.
   // 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.
   // 3.   Update P's metadata, zero out memory and add P to the page table.
-  // 4.   Set the page ID output parameter. Return a pointer to P.
+  // 4.   Set the page ID output parameter. Return a pointer to P
   // RMK: no need to pin this page (ok to evict) or read from disk
   // as it is newly allocated
   frame_id_t frame_idx = -1;

@@ -172,7 +172,7 @@ class BufferPoolManager {
 
   inline void IncremPin(Page* page) { page->pin_count_++; }
 
-  inline void DecremPin(Page *page) { page->pin_count_++; }
+  inline void DecremPin(Page *page) { page->pin_count_--; }
 
   void ResetPage(Page *page, page_id_t new_page);
 };
