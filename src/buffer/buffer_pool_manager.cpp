@@ -54,23 +54,24 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     temp_page = pages_ + frame_idx;
     replacer_->Pin(frame_idx);
     // get write lock to update pin
-    temp_page->WLatch();
-    latch_.unlock();
+    // temp_page->WLatch();
     IncremPin(temp_page);
-    temp_page->WUnlatch();
+    latch_.unlock();
+    // temp_page->WUnlatch();
 
   } else if (free_list_.size() > 0) {
+    // if have free pages
     frame_idx = free_list_.front();
     free_list_.pop_front();
     page_table_[page_id] = frame_idx;
     temp_page = pages_ + frame_idx;
     replacer_->Pin(frame_idx);
-    temp_page->WLatch();
-    latch_.unlock();
+    // temp_page->WLatch();
     // reset memory and update meta data
     ResetPage(temp_page, page_id);
     disk_manager_->ReadPage(page_id, temp_page->data_);
-    temp_page->WUnlatch();
+    latch_.unlock();
+    // temp_page->WUnlatch();
 
   } else {
     // if nothing to evict
@@ -82,24 +83,24 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     temp_page = pages_ + frame_idx;
     page_table_.erase(old_page_id);
     page_table_[page_id] = frame_idx;
-    temp_page->WLatch();
-    latch_.unlock();
+    // temp_page->WLatch();
     if (temp_page->IsDirty()) {
       disk_manager_->WritePage(old_page_id, temp_page->data_);
     }
     ResetPage(temp_page, page_id);
     disk_manager_->ReadPage(page_id, temp_page->data_);
-    temp_page->WUnlatch();
+    replacer_->Pin(frame_idx);
+    latch_.unlock();
+    // temp_page->WUnlatch();
   }
   return temp_page;
 }
-
 
 void BufferPoolManager::ResetPage(Page *page, page_id_t new_page_id) {
   page->ResetMemory();
   page->page_id_ = new_page_id;
   page->is_dirty_ = false;
-  page->pin_count_ = (new_page_id == INVALID_PAGE_ID)? 0: 1;
+  page->pin_count_ = (new_page_id == INVALID_PAGE_ID) ? 0 : 1;
 }
 
 bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
@@ -110,16 +111,15 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
   if (page_table_.find(page_id) != page_table_.end()) {
     frame_idx = page_table_[page_id];
     temp_page = pages_ + frame_idx;
-    temp_page->WLatch();
+    // temp_page->WLatch();
     if (temp_page->GetPinCount() == 0) {
       latch_.unlock();
       return false;
     }
     DecremPin(temp_page);
-    if (temp_page->GetPinCount() == 0)
-      replacer_->Unpin(frame_idx);
+    if (temp_page->GetPinCount() == 0) replacer_->Unpin(frame_idx);
+    temp_page->is_dirty_ |= is_dirty;
     latch_.unlock();
-    temp_page->is_dirty_ &= is_dirty;
   } else {
     latch_.unlock();
   }
@@ -127,6 +127,7 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
 }
 
 bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
+  // write page contents to disk, no need to delete it
   // Make sure you call DiskManager::WritePage!
   frame_id_t frame_idx = -1;
   Page *temp_page = nullptr;
@@ -135,21 +136,18 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
     // update page_table, free_list
     frame_idx = page_table_[page_id];
     temp_page = pages_ + frame_idx;
-    free_list_.push_back(frame_idx);
-    page_table_.erase(page_id);
-    replacer_->Pin(frame_idx);
-    temp_page->WLatch();
-    latch_.unlock();
+    // temp_page->WLatch();
     if (temp_page->IsDirty()) {
       disk_manager_->WritePage(page_id, temp_page->data_);
     }
-    ResetPage(temp_page, INVALID_PAGE_ID);
+    // not dirty anymore...
+    temp_page->is_dirty_ = false;
+    latch_.unlock();
     return true;
   } else {
     latch_.unlock();
     return false;
   }
-  
 }
 
 Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
@@ -158,7 +156,45 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
   // 2.   Pick a victim page P from either the free list or the replacer. Always pick from the free list first.
   // 3.   Update P's metadata, zero out memory and add P to the page table.
   // 4.   Set the page ID output parameter. Return a pointer to P.
-  return nullptr;
+  // RMK: no need to pin this page (ok to evict) or read from disk
+  // as it is newly allocated
+  frame_id_t frame_idx = -1;
+  Page *temp_page = nullptr;
+
+  latch_.lock();
+  if (free_list_.size() > 0) {
+    // if have free pages
+    frame_idx = free_list_.front();
+    free_list_.pop_front();
+    *page_id = disk_manager_->AllocatePage();
+    page_table_[*page_id] = frame_idx;
+    temp_page = pages_ + frame_idx;
+    // temp_page->WLatch();
+    // reset memory and update meta data
+    ResetPage(temp_page, *page_id);
+    latch_.unlock();
+    // temp_page->WUnlatch();
+
+  } else {
+    // if nothing to evict
+    if (!replacer_->Victim(&frame_idx)) {
+      latch_.unlock();
+      return nullptr;
+    }
+    *page_id = disk_manager_->AllocatePage();
+    frame_id_t old_page_id = temp_page->GetPageId();
+    temp_page = pages_ + frame_idx;
+    page_table_.erase(old_page_id);
+    page_table_[*page_id] = frame_idx;
+    // temp_page->WLatch();
+    if (temp_page->IsDirty()) {
+      disk_manager_->WritePage(old_page_id, temp_page->data_);
+    }
+    ResetPage(temp_page, *page_id);
+    latch_.unlock();
+    // temp_page->WUnlatch();
+  }
+  return temp_page;
 }
 
 bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
@@ -167,11 +203,38 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
   // 1.   If P does not exist, return true.
   // 2.   If P exists, but has a non-zero pin-count, return false. Someone is using the page.
   // 3.   Otherwise, P can be deleted. Remove P from the page table, reset its metadata and return it to the free list.
-  return false;
+  frame_id_t frame_idx = -1;
+  Page *temp_page = nullptr;
+  latch_.lock();
+  if (page_table_.find(page_id) != page_table_.end()) {
+    // update page_table, free_list
+    frame_idx = page_table_[page_id];
+    temp_page = pages_ + frame_idx;
+    // someone is using and can not delete
+    if (temp_page->GetPinCount() > 0) {
+      latch_.unlock();
+      return false;
+    }
+    free_list_.push_back(frame_idx);
+    page_table_.erase(page_id);
+    // tell replacer don't try to evict this frame
+    replacer_->Pin(frame_idx);
+    // temp_page->WLatch();
+    if (temp_page->IsDirty()) {
+      disk_manager_->WritePage(page_id, temp_page->data_);
+    }
+    ResetPage(temp_page, INVALID_PAGE_ID);
+  }
+  latch_.unlock();
+  return true;
 }
 
 void BufferPoolManager::FlushAllPagesImpl() {
-  // You can do it!
+  latch_.lock();
+  for (auto page_pair : page_table_) {
+    FlushPageImpl(page_pair.first);
+  }
+  latch_.unlock();
 }
 
 }  // namespace bustub

@@ -19,7 +19,11 @@
 
 namespace bustub {
 
-TEST(ClockReplacerTest, MyTest) {
+<<<<<<< HEAD
+TEST(ClockReplacerTest, Clock_Test) {
+=======
+TEST(ClockReplacerTest, Clock_Test) {
+>>>>>>> 206c1989549e24919d71737728d11a0e7cde7514
   ClockReplacer clock_replacer(7);
 
   // Scenario: unpin six elements, i.e. add them to the replacer.
