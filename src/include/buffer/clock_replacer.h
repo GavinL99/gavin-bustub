@@ -61,7 +61,6 @@ class ClockReplacer : public Replacer {
   // 0: exist with ref bit 0; 1: exist with ref bit 1
   std::vector<int> clock_map_;
   std::mutex latch_;
-
 };
 
 }  // namespace bustub

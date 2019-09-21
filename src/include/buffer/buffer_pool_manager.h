@@ -170,7 +170,7 @@ class BufferPoolManager {
   // protect: pages_, page_table_, free_list_
   std::mutex latch_;
 
-  inline void IncremPin(Page* page) { page->pin_count_++; }
+  inline void IncremPin(Page *page) { page->pin_count_++; }
 
   inline void DecremPin(Page *page) { page->pin_count_--; }
 

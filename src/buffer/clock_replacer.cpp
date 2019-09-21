@@ -14,14 +14,14 @@
 
 namespace bustub {
 
-ClockReplacer::ClockReplacer(size_t num_pages) : capacity_((frame_id_t) num_pages), clock_map_(num_pages, -1) {
+ClockReplacer::ClockReplacer(size_t num_pages) : capacity_(static_cast<frame_id_t>(num_pages)), clock_map_(num_pages, -1) {
   clock_hand_ = 0;
   evict_size_ = 0;
 }
 
 ClockReplacer::~ClockReplacer() = default;
 
-bool ClockReplacer::Victim(frame_id_t *frame_id) { 
+bool ClockReplacer::Victim(frame_id_t *frame_id) {
   latch_.lock();
   frame_id_t prev_hand = clock_hand_;
   // possible when have evict_size_ = 0 but can evict
@@ -52,8 +52,9 @@ bool ClockReplacer::Victim(frame_id_t *frame_id) {
 // if exist, need to mark it as "non exist"
 // but not really, only page table knows
 void ClockReplacer::Pin(frame_id_t frame_id) {
-  if (frame_id < 0 || frame_id >= capacity_) 
+  if (frame_id < 0 || frame_id >= capacity_) {
     return;
+  }
   latch_.lock();
   if (clock_map_[frame_id] >= 0) {
     clock_map_[frame_id] = -1;
@@ -64,8 +65,9 @@ void ClockReplacer::Pin(frame_id_t frame_id) {
 
 // if not exist or ref_bit = 0, increment size and ref bit
 void ClockReplacer::Unpin(frame_id_t frame_id) {
-  if (frame_id < 0 || frame_id >= capacity_) 
+  if (frame_id < 0 || frame_id >= capacity_) {
     return;
+  }
   latch_.lock();
   if (clock_map_[frame_id] < 0) {
     evict_size_++;

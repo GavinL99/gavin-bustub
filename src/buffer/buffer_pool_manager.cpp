@@ -59,7 +59,7 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     latch_.unlock();
     // temp_page->WUnlatch();
 
-  } else if (free_list_.size() > 0) {
+  } else if (!free_list_.empty()) {
     // if have free pages
     frame_idx = free_list_.front();
     free_list_.pop_front();
@@ -117,8 +117,9 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
       return false;
     }
     DecremPin(temp_page);
-    if (temp_page->GetPinCount() == 0) 
+    if (temp_page->GetPinCount() == 0) {
       replacer_->Unpin(frame_idx);
+    }
     temp_page->is_dirty_ |= is_dirty;
     latch_.unlock();
   } else {
@@ -145,10 +146,10 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
     temp_page->is_dirty_ = false;
     latch_.unlock();
     return true;
-  } else {
-    latch_.unlock();
-    return false;
-  }
+  } 
+  latch_.unlock();
+  return false;
+
 }
 
 Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
@@ -163,7 +164,7 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
   Page *temp_page = nullptr;
 
   latch_.lock();
-  if (free_list_.size() > 0) {
+  if (!free_list_.empty()) {
     // if have free pages
     frame_idx = free_list_.front();
     free_list_.pop_front();
