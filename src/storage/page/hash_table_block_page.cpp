@@ -50,8 +50,7 @@ void HASH_TABLE_BLOCK_TYPE::Remove(slot_offset_t bucket_ind) {
 
   // if occupied
   if ((occupied_[char_idx] >> bit_idx) & 0x01) {
-    // set bit for readable, occupied to 0
-    occupied_[char_idx] ^= (0x01 << bit_idx);
+    // only set bit for readable to 0
     readable_[char_idx] ^= (0x01 << bit_idx);
   }
 }
