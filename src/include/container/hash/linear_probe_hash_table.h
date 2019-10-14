@@ -86,7 +86,7 @@ class LinearProbeHashTable : public HashTable<KeyType, ValueType, KeyComparator>
    */
   size_t GetSize();
 
- private:
+private:
   // member variable
   page_id_t header_page_id_;
   BufferPoolManager *buffer_pool_manager_;
@@ -97,6 +97,9 @@ class LinearProbeHashTable : public HashTable<KeyType, ValueType, KeyComparator>
 
   // Hash function
   HashFunction<KeyType> hash_fn_;
+  
+  // members added
+  size_t size_;
 };
 
 }  // namespace bustub
