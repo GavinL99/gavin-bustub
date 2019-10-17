@@ -89,7 +89,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       break;
     }
     // if match
-    if (block_page->IsReadable(offset) && block_page->KeyAt(offset) == key) {
+    if (block_page->IsReadable(offset) && comparator_.Compare(block_page->KeyAt(offset), key) == 0) {
       result->push_back(block_page->ValueAt(offset));
     }
     // linear probe
@@ -173,7 +173,9 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       insert_slot = offset;
     }
     // if duplicates detected, abort
-    if (block_page->IsReadable(offset) && block_page->KeyAt(offset) == key && block_page->ValueAt(offset) == value) {
+    if (block_page->IsReadable(offset) && 
+        comparator_.Compare(block_page->KeyAt(offset), key) == 0 &&
+        block_page->ValueAt(offset) == value) {
       buffer_pool_manager_->UnpinPage(page_id, false);
       break;
     }
@@ -236,7 +238,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       break;
     }
     // if match, remove and mark page dirty
-    if (block_page->IsReadable(offset) && block_page->KeyAt(offset) == key) {
+    if (block_page->IsReadable(offset) && comparator_.Compare(block_page->KeyAt(offset), key) == 0) {
       remove_flag = true;
       blcok_page->Remove(offset);
       page_dirty_flag = true;
@@ -261,7 +263,10 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
  * RESIZE
  *****************************************************************************/
 template <typename KeyType, typename ValueType, typename KeyComparator>
-void HASH_TABLE_TYPE::Resize(size_t initial_size) {}
+void HASH_TABLE_TYPE::Resize(size_t initial_size) {
+  
+
+}
 
 /*****************************************************************************
  * GETSIZE

@@ -90,6 +90,7 @@ private:
   // member variable
   page_id_t header_page_id_;
   BufferPoolManager *buffer_pool_manager_;
+  // can use == for values
   KeyComparator comparator_;
 
   // Readers includes inserts and removes, writer is only resize
@@ -99,7 +100,8 @@ private:
   HashFunction<KeyType> hash_fn_;
   
   // members added
-  size_t size_;
+  size_t num_block_pages_;
+  size_t num_buckets_;
 };
 
 }  // namespace bustub

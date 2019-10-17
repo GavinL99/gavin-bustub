@@ -30,7 +30,7 @@ bool HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key,
   size_t char_idx, bit_idx;
   char_idx = bucket_ind / 8;
   bit_idx = bucket_ind % 8;
-
+  // can still insert if tombstone
   if ((occupied_[char_idx] >> bit_idx) & 0x01 && 
     (readable_[char_idx] >> bit_idx) & 0x01) {
       return false;
