@@ -103,6 +103,7 @@ void BufferPoolManager::ResetPage(Page *page, page_id_t new_page_id) {
   page->pin_count_ = (new_page_id == INVALID_PAGE_ID) ? 0 : 1;
 }
 
+// Tell BPM that I don't need this page anymore
 bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
   frame_id_t frame_idx = -1;
   Page *temp_page = nullptr;

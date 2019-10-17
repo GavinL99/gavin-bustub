@@ -35,7 +35,7 @@ namespace bustub {
  */
 template <typename KeyType, typename ValueType, typename KeyComparator>
 class HashTableBlockPage {
- public:
+public:
   // Delete all constructor / destructor to ensure memory safety
   HashTableBlockPage() = delete;
 
