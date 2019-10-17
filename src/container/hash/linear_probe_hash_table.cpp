@@ -61,7 +61,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   int block_id = hash_fn_.GetHash(key) % num_buckets_;
   int start_id = block_id;
   // where to start linear probing
-  page_id_t page_id = header_page->block_page_ids_[block_id];
+  page_id_t page_id = header_page->GetBlockPageId(block_id);
   // if need to read a new page or check the next page (or wrap around)
   bool switch_page = true;
 
@@ -98,7 +98,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       switch_page = true;
       // need to unpin page
       buffer_pool_manager_->UnpinPage(page_id, false);
-      // page_id = header_page->block_page_ids_[block_id];
+      // page_id = header_page->GetBlockPageId(block_id);
       page_id++;
     }
   }
@@ -121,7 +121,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   int block_id = hash_fn_.GetHash(key) % num_buckets_;
   int start_id = block_id;
   // where to start linear probing
-  page_id_t page_id = header_page->block_page_ids_[block_id];
+  page_id_t page_id = header_page->GetBlockPageId(block_id);
   // if need to read a new page or check the next page (or wrap around)
   bool switch_page = true;
   bool insert_flag = false;
@@ -185,7 +185,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       if (page_id != insert_page_id) {
         buffer_pool_manager_->UnpinPage(page_id, false);
       }
-      // page_id = header_page->block_page_ids_[block_id];
+      // page_id = header_page->GetBlockPageId(block_id);
       page_id++;
     }
   }
@@ -207,7 +207,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
   int block_id = hash_fn_.GetHash(key) % num_buckets_;
   int start_id = block_id;
   // where to start linear probing
-  page_id_t page_id = header_page->block_page_ids_[block_id];
+  page_id_t page_id = header_page->GetBlockPageId(block_id);
   // if need to read a new page or check the next page (or wrap around)
   bool switch_page = true;
 
@@ -248,7 +248,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       page_dirty_flag = false;
       // need to unpin page
       buffer_pool_manager_->UnpinPage(page_id, page)dirty_flag);
-      // page_id = header_page->block_page_ids_[block_id];
+      // page_id = header_page->GetBlockPageId(block_id);
       page_id++;
     }
   }
