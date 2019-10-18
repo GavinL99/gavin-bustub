@@ -34,12 +34,12 @@ HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager
 
       // allocate header page
       header_page_id_ = INVALID_PAGE_ID;
-      auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(&header_page_id)->GetData());
-      header_page->SetSize(num_blocks_);
+      auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(&header_page_id_)->GetData());
+      header_page->SetSize(num_buckets_);
       header_page->SetPageId(header_page_id_);
       // block pages, need to add all buckets
       for (int i = 0; i < num_blocks_; ++i) {
-        bpm->NewPage(&temp_p, nullptr);
+        buffer_pool_manager_->NewPage(&temp_p, nullptr);
         for (int j = 0; j < BLOCK_ARRAY_SIZE; j++)
           header_page->AddBlockPageId(temp_p);
       }
@@ -66,7 +66,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   bool switch_page = true;
 
   slot_offset_t offset;
-  HashTableBlockPage *block_page;
+  HashTableBlockPage<KeyType, ValueType, KeyComparator> *block_page;
 
   while (1) {
     // if wrapped around
@@ -118,8 +118,8 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     return false;
   }
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
-  int block_id = hash_fn_.GetHash(key) % num_buckets_;
-  int start_id = block_id;
+  uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
+  uint64_t start_id = block_id;
   // where to start linear probing
   page_id_t page_id = header_page->GetBlockPageId(block_id);
   // if need to read a new page or check the next page (or wrap around)
@@ -129,7 +129,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   // for tombstones insertion
   page_id_t insert_page_id = INVALID_PAGE_ID;
   slot_offset_t offset, insert_offset;
-  HashTableBlockPage *block_page, *insert_page;
+  HashTableBlockPage<KeyType, ValueType, KeyComparator> *block_page, *insert_page;
 
   while (1) {
     // if wrapped around
@@ -142,7 +142,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       if (!temp_page) {
         break;
       }
-      block_page = reinterpret_cast<HashTableBlockPage *>(temp_page->GetData());
+      block_page = reinterpret_cast<HashTableBlockPage*>(temp_page->GetData());
       switch_page = false;
     }
     // block_page slot
@@ -170,7 +170,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (!block_page->IsReadable(offset) && insert_page_id == INVALID_PAGE_ID) {
       insert_page_id = page_id;
       insert_page = block_page;
-      insert_slot = offset;
+      insert_offset = offset;
     }
     // if duplicates detected, abort
     if (block_page->IsReadable(offset) && 
@@ -206,15 +206,15 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
     return false;
   }
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
-  int block_id = hash_fn_.GetHash(key) % num_buckets_;
-  int start_id = block_id;
+  uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
+  uint64_t start_id = block_id;
   // where to start linear probing
   page_id_t page_id = header_page->GetBlockPageId(block_id);
   // if need to read a new page or check the next page (or wrap around)
   bool switch_page = true;
 
   slot_offset_t offset;
-  HashTableBlockPage *block_page;
+  HashTableBlockPage<KeyType, ValueType, KeyComparator> *block_page;
   bool remove_flag = false;
   bool page_dirty_flag = false;
 
@@ -249,7 +249,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       switch_page = true;
       page_dirty_flag = false;
       // need to unpin page
-      buffer_pool_manager_->UnpinPage(page_id, page)dirty_flag);
+      buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
       // page_id = header_page->GetBlockPageId(block_id);
       page_id++;
     }
