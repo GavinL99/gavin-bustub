@@ -231,7 +231,7 @@ namespace bustub {
       }
       // fetch block page
       if (switch_page) {
-        LOG_DEBUG("Page Switched!\n");
+//        LOG_DEBUG("Page Switched!\n");
         temp_page = buffer_pool_manager_->FetchPage(page_id);
         if (!temp_page) {
           break;
@@ -241,7 +241,7 @@ namespace bustub {
       }
       // block_page slot
       offset = block_id % BLOCK_ARRAY_SIZE;
-      LOG_DEBUG("Probed: %d!\n", (int) offset);
+//      LOG_DEBUG("Probed: %d!\n", (int) offset);
 
       if (!block_page->IsOccupied(offset)) {
         break;
