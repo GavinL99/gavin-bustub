@@ -77,8 +77,14 @@ namespace bustub {
 
     // delete some values
     for (int i = 0; i < 5; i++) {
-      EXPECT_TRUE(ht.Remove(nullptr, i, i));
       std::vector<int> res;
+      ht.GetValue(nullptr, i, &res);
+      if (i==0) {
+        EXPECT_EQ(1, res.size());
+      } else {
+        EXPECT_EQ(2, res.size());
+      }
+      EXPECT_TRUE(ht.Remove(nullptr, i, i));
       ht.GetValue(nullptr, i, &res);
       if (i == 0) {
         // (0, 0) is the only pair with key 0
