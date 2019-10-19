@@ -247,7 +247,8 @@ namespace bustub {
         break;
       }
       // if match, remove and mark page dirty
-      if (block_page->IsReadable(offset) && comparator_(block_page->KeyAt(offset), key) == 0) {
+      if (block_page->IsReadable(offset) && comparator_(block_page->KeyAt(offset), key) == 0 && block_page->ValueAt
+          (offset) == value) {
         remove_flag = true;
         block_page->Remove(offset);
         page_dirty_flag = true;
