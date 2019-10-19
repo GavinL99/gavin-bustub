@@ -100,8 +100,13 @@ private:
   HashFunction<KeyType> hash_fn_;
   
   // members added
+  // number of block pages allocated
   size_t num_block_pages_;
+  // number of Hash buckets
   size_t num_buckets_;
+
+  using BLOCK_PAGE_TYPE = HashTableBlockPage<KeyType, ValueType, KeyComparator>;
+
 };
 
 }  // namespace bustub

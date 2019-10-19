@@ -38,9 +38,9 @@ HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager
       header_page->SetSize(num_buckets_);
       header_page->SetPageId(header_page_id_);
       // block pages, need to add all buckets
-      for (int i = 0; i < num_blocks_; ++i) {
+      for (int i = 0; i < (int) num_block_pages_; ++i) {
         buffer_pool_manager_->NewPage(&temp_p, nullptr);
-        for (int j = 0; j < BLOCK_ARRAY_SIZE; j++)
+        for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; j++)
           header_page->AddBlockPageId(temp_p);
       }
 
@@ -58,7 +58,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
     return false;
   }
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
-  int block_id = hash_fn_.GetHash(key) % num_buckets_;
+  uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
   int start_id = block_id;
   // where to start linear probing
   page_id_t page_id = header_page->GetBlockPageId(block_id);
@@ -66,9 +66,9 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   bool switch_page = true;
 
   slot_offset_t offset;
-  HashTableBlockPage<KeyType, ValueType, KeyComparator> *block_page;
+  BLOCK_PAGE_TYPE *block_page(nullptr);
 
-  while (1) {
+  while (true) {
     // if wrapped around
     if (block_id == start_id + num_buckets_) {
       break;
@@ -79,7 +79,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       if (!temp_page) {
         break;
       }
-      block_page = reinterpret_cast<HashTableBlockPage *>(temp_page->GetData());
+      block_page = reinterpret_cast<BLOCK_PAGE_TYPE*>(temp_page->GetData());
       switch_page = false;
     }
     // block_page slot
@@ -89,7 +89,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       break;
     }
     // if match
-    if (block_page->IsReadable(offset) && comparator_.Compare(block_page->KeyAt(offset), key) == 0) {
+    if (block_page->IsReadable(offset) && comparator_(block_page->KeyAt(offset), key) == 0) {
       result->push_back(block_page->ValueAt(offset));
     }
     // linear probe
@@ -128,10 +128,10 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 
   // for tombstones insertion
   page_id_t insert_page_id = INVALID_PAGE_ID;
-  slot_offset_t offset, insert_offset;
-  HashTableBlockPage<KeyType, ValueType, KeyComparator> *block_page, *insert_page;
+  slot_offset_t offset(0), insert_offset(0);
+  BLOCK_PAGE_TYPE *block_page(nullptr), *insert_page(nullptr);
 
-  while (1) {
+  while (true) {
     // if wrapped around
     if (block_id == start_id + num_buckets_) {
       break;
@@ -142,7 +142,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       if (!temp_page) {
         break;
       }
-      block_page = reinterpret_cast<HashTableBlockPage*>(temp_page->GetData());
+      block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
       switch_page = false;
     }
     // block_page slot
@@ -173,8 +173,8 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       insert_offset = offset;
     }
     // if duplicates detected, abort
-    if (block_page->IsReadable(offset) && 
-        comparator_.Compare(block_page->KeyAt(offset), key) == 0 &&
+    if (block_page->IsReadable(offset) &&
+        comparator_(block_page->KeyAt(offset), key) == 0 &&
         block_page->ValueAt(offset) == value) {
       buffer_pool_manager_->UnpinPage(page_id, false);
       break;
@@ -214,11 +214,11 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
   bool switch_page = true;
 
   slot_offset_t offset;
-  HashTableBlockPage<KeyType, ValueType, KeyComparator> *block_page;
+  BLOCK_PAGE_TYPE *block_page;
   bool remove_flag = false;
   bool page_dirty_flag = false;
 
-  while (1) {
+  while (true) {
     // if wrapped around
     if (block_id == start_id + num_buckets_) {
       break;
@@ -229,7 +229,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       if (!temp_page) {
         break;
       }
-      block_page = reinterpret_cast<HashTableBlockPage *>(temp_page->GetData());
+      block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
       switch_page = false;
     }
     // block_page slot
@@ -238,7 +238,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       break;
     }
     // if match, remove and mark page dirty
-    if (block_page->IsReadable(offset) && comparator_.Compare(block_page->KeyAt(offset), key) == 0) {
+    if (block_page->IsReadable(offset) && comparator_(block_page->KeyAt(offset), key) == 0) {
       remove_flag = true;
       blcok_page->Remove(offset);
       page_dirty_flag = true;
@@ -258,13 +258,12 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
   buffer_pool_manager_->UnpinPage(header_page_id_, false);
   return remove_flag;
 }
-
 /*****************************************************************************
  * RESIZE
  *****************************************************************************/
 template <typename KeyType, typename ValueType, typename KeyComparator>
 void HASH_TABLE_TYPE::Resize(size_t initial_size) {
-  
+
 
 }
 
