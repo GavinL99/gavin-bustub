@@ -89,7 +89,8 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       break;
     }
     // if match
-    if (block_page->IsReadable(offset) && comparator_(block_page->KeyAt(offset), key) == 0) {
+    if (block_page->IsReadable(offset) &&
+        comparator_(block_page->KeyAt(offset), key) == 0) {
       result->push_back(block_page->ValueAt(offset));
     }
     // linear probe
@@ -99,6 +100,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       // need to unpin page
       buffer_pool_manager_->UnpinPage(page_id, false);
       // page_id = header_page->GetBlockPageId(block_id);
+      // assume just try next page
       page_id++;
     }
   }
@@ -124,6 +126,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   page_id_t page_id = header_page->GetBlockPageId(block_id);
   // if need to read a new page or check the next page (or wrap around)
   bool switch_page = true;
+  // if need to insert at some tombstones
   bool insert_flag = false;
 
   // for tombstones insertion
@@ -166,7 +169,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       insert_flag = true;
       break;
     }
-    // possible insertion: if encounter the first tombstone
+    // possible place to insert; if encounter the first tombstone
     if (!block_page->IsReadable(offset) && insert_page_id == INVALID_PAGE_ID) {
       insert_page_id = page_id;
       insert_page = block_page;
@@ -214,7 +217,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
   bool switch_page = true;
 
   slot_offset_t offset;
-  BLOCK_PAGE_TYPE *block_page;
+  BLOCK_PAGE_TYPE *block_page(nullptr);
   bool remove_flag = false;
   bool page_dirty_flag = false;
 
@@ -240,7 +243,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
     // if match, remove and mark page dirty
     if (block_page->IsReadable(offset) && comparator_(block_page->KeyAt(offset), key) == 0) {
       remove_flag = true;
-      blcok_page->Remove(offset);
+      block_page->Remove(offset);
       page_dirty_flag = true;
     }
     // linear probe
