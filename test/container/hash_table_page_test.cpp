@@ -86,6 +86,7 @@ TEST(HashTablePageTest, BlockPageSampleTest) {
   for (unsigned i = 0; i < 10; i++) {
     if (i % 2 == 1) {
       block_page->Remove(i);
+      EXPECT_FALSE(block_page->IsReadable(i));
     }
   }
 
