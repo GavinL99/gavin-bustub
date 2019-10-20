@@ -227,6 +227,7 @@ namespace bustub {
 
     while (true) {
       // if wrapped around
+      LOG_DEBUG("Remove Id: %d\n", (int) block_id);
       if (block_id == start_id + num_buckets_) {
         break;
       }
