@@ -183,6 +183,7 @@ namespace bustub {
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
         buffer_pool_manager_->UnpinPage(page_id, false);
+        LOG_DEBUG("Duplicated!\n");
         break;
       }
       // linear probe
