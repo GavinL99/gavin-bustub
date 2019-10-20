@@ -102,17 +102,17 @@ TEST(HashTablePageTest, BlockPageSampleTest) {
     } else {
       EXPECT_FALSE(block_page->IsOccupied(i));
     }
+  }
 
-    for (unsigned i = 0; i < 10; i++) {
-      block_page->Insert(i, i, i);
-    }
+  for (unsigned i = 0; i < 10; i++) {
+    block_page->Insert(i, i, i);
+  }
 
-    for (unsigned i = 0; i < 10; i++) {
-      EXPECT_EQ(i, block_page->KeyAt(i));
-      EXPECT_EQ(i, block_page->ValueAt(i));
-      EXPECT_TRUE(block_page->IsReadable(i));
-      EXPECT_TRUE(block_page->IsOccupied(i));
-    }
+  for (unsigned i = 0; i < 10; i++) {
+    EXPECT_EQ(i, block_page->KeyAt(i));
+    EXPECT_EQ(i, block_page->ValueAt(i));
+    EXPECT_TRUE(block_page->IsReadable(i));
+    EXPECT_TRUE(block_page->IsOccupied(i));
   }
 
   // unpin the header page now that we are done
