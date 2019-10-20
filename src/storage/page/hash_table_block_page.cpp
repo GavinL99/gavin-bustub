@@ -48,12 +48,11 @@ void HASH_TABLE_BLOCK_TYPE::Remove(slot_offset_t bucket_ind) {
   size_t char_idx, bit_idx;
   char_idx = bucket_ind / 8;
   bit_idx = bucket_ind % 8;
-
   // if occupied
   if ((occupied_[char_idx] >> bit_idx) & 0x01) {
     // only set bit for readable to 0
 //    readable_[char_idx] ^= (0x01 << bit_idx);
-    readable_[char_idx] &= !(0x01 << bit_idx);
+    readable_[char_idx] &= ~(0x01 << bit_idx);
   }
 }
 
