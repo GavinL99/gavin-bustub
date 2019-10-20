@@ -87,14 +87,14 @@ namespace bustub {
         EXPECT_EQ(2, res.size());
       }
       EXPECT_TRUE(ht.Remove(nullptr, i, i));
-//      ht.GetValue(nullptr, i, &res);
-//      if (i == 0) {
-//        // (0, 0) is the only pair with key 0
-//        EXPECT_EQ(0, res.size());
-//      } else {
-//        EXPECT_EQ(1, res.size());
-//        EXPECT_EQ(2 * i, res[0]);
-//      }
+      ht.GetValue(nullptr, i, &res);
+      if (i == 0) {
+        // (0, 0) is the only pair with key 0
+        EXPECT_EQ(0, res.size());
+      } else {
+        EXPECT_EQ(1, res.size());
+        EXPECT_EQ(2 * i, res[0]);
+      }
     }
 
     // delete all values
