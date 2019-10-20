@@ -45,31 +45,33 @@ bool HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key,
 
 template <typename KeyType, typename ValueType, typename KeyComparator>
 void HASH_TABLE_BLOCK_TYPE::Remove(slot_offset_t bucket_ind) {
+  // only set readable to 0
   size_t char_idx, bit_idx;
+  unsigned short one = 0x01;
   char_idx = bucket_ind / 8;
   bit_idx = bucket_ind % 8;
   // if occupied
-  if ((occupied_[char_idx] >> bit_idx) & 0x01) {
-    // only set bit for readable to 0
-//    readable_[char_idx] ^= (0x01 << bit_idx);
-    readable_[char_idx] &= ~(0x01 << bit_idx);
+  if ((occupied_[char_idx] >> bit_idx) & one) {
+    readable_[char_idx] ^= (one << bit_idx);
   }
 }
 
 template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_BLOCK_TYPE::IsOccupied(slot_offset_t bucket_ind) const {
   size_t char_idx, bit_idx;
+  unsigned short one = 0x01;
   char_idx = bucket_ind / 8;
   bit_idx = bucket_ind % 8;
-  return (occupied_[char_idx] >> bit_idx) & 0x01;
+  return (occupied_[char_idx] >> bit_idx) & one;
 }
 
 template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_BLOCK_TYPE::IsReadable(slot_offset_t bucket_ind)  const {
   size_t char_idx, bit_idx;
+  unsigned short one = 0x01;
   char_idx = bucket_ind / 8;
   bit_idx = bucket_ind % 8;
-  return (readable_[char_idx] >> bit_idx) & 0x01;
+  return (readable_[char_idx] >> bit_idx) & one;
 }
 
 // DO NOT REMOVE ANYTHING BELOW THIS LINE
