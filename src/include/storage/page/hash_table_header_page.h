@@ -95,6 +95,8 @@ class HashTableHeaderPage {
   __attribute__((unused)) page_id_t page_id_;
   __attribute__((unused)) size_t next_ind_;
   // flexible array??
+  // mapping from Block_page to page_id
+  // each block page contains BLOCK_ARRAY_SZ number of buckets...
   __attribute__((unused)) page_id_t block_page_ids_[0];
 
 };

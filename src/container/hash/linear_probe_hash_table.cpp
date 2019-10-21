@@ -22,6 +22,7 @@
 #include "common/logger.h"
 
 namespace bustub {
+#define MAX_NUM_BLOCK_PAGES 1020
 
   template<typename KeyType, typename ValueType, typename KeyComparator>
   HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager *buffer_pool_manager,
@@ -42,8 +43,7 @@ namespace bustub {
     // block pages, need to add all buckets
     for (int i = 0; i < (int) num_block_pages_; ++i) {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
-      for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; j++)
-        header_page->AddBlockPageId(temp_p);
+      header_page->AddBlockPageId(temp_p);
     }
 
   }
@@ -63,7 +63,7 @@ namespace bustub {
     uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
     int start_id = block_id;
     // where to start linear probing
-    page_id_t page_id = header_page->GetBlockPageId(block_id);
+    page_id_t page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
 
@@ -101,9 +101,7 @@ namespace bustub {
         switch_page = true;
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
-        // page_id = header_page->GetBlockPageId(block_id);
-        // assume just try next page
-        page_id++;
+        page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
       }
     }
     buffer_pool_manager_->UnpinPage(page_id, false);
@@ -126,7 +124,7 @@ namespace bustub {
     uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = block_id;
     // where to start linear probing
-    page_id_t page_id = header_page->GetBlockPageId(block_id);
+    page_id_t page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
     // if need to insert at some tombstones
@@ -194,8 +192,7 @@ namespace bustub {
         if (page_id != insert_page_id) {
           buffer_pool_manager_->UnpinPage(page_id, false);
         }
-        // page_id = header_page->GetBlockPageId(block_id);
-        page_id++;
+        page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
       }
     }
     // unpin page_id is handled above
@@ -216,7 +213,7 @@ namespace bustub {
     uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = block_id;
     // where to start linear probing
-    page_id_t page_id = header_page->GetBlockPageId(block_id);
+    page_id_t page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
 
@@ -227,7 +224,7 @@ namespace bustub {
 
     while (true) {
       // if wrapped around
-      LOG_DEBUG("Remove Id: %d\n", (int) block_id);
+//      LOG_DEBUG("Remove Id: %d\n", (int) block_id);
       if (block_id == start_id + num_buckets_) {
         break;
       }
@@ -263,8 +260,7 @@ namespace bustub {
         // need to unpin page based on whether page is dirty
         buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
         page_dirty_flag = false;
-        // page_id = header_page->GetBlockPageId(block_id);
-        page_id++;
+        page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
       }
     }
     buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
@@ -277,6 +273,27 @@ namespace bustub {
  *****************************************************************************/
   template<typename KeyType, typename ValueType, typename KeyComparator>
   void HASH_TABLE_TYPE::Resize(size_t initial_size) {
+    int new_num_blocks = (size_t) (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
+    if (new_num_blocks > MAX_NUM_BLOCK_PAGES)
+      return;
+
+//    num_block_pages_ = new_num_blocks;
+//    num_buckets_ = new_num_blocks * BLOCK_ARRAY_SIZE;
+//    page_id_t temp_p = INVALID_PAGE_ID;
+//
+//    // allocate header page
+//    header_page_id_ = INVALID_PAGE_ID;
+//    auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
+//        &header_page_id_)->GetData());
+//    header_page->SetSize(num_buckets_);
+//    header_page->SetPageId(header_page_id_);
+//    // block pages, need to add all buckets
+//    for (int i = 0; i < (int) num_block_pages_; ++i) {
+//      buffer_pool_manager_->NewPage(&temp_p, nullptr);
+//      for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; j++)
+//        header_page->AddBlockPageId(temp_p);
+//    }
+
 
 
   }

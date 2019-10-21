@@ -26,10 +26,8 @@ lsn_t HashTableHeaderPage::GetLSN() const { return lsn_; }
 void HashTableHeaderPage::SetLSN(lsn_t lsn) { lsn_ = lsn; }
 
 void HashTableHeaderPage::AddBlockPageId(page_id_t page_id) {
-  if (next_ind_ < size_) {
-    block_page_ids_[next_ind_] = page_id;
-    next_ind_++;
-  }
+  block_page_ids_[next_ind_] = page_id;
+  next_ind_++;
 }
 
 size_t HashTableHeaderPage::NumBlocks() { return next_ind_; }
