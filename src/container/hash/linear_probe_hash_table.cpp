@@ -185,7 +185,7 @@ namespace bustub {
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
         buffer_pool_manager_->UnpinPage(page_id, false);
-        LOG_DEBUG("Duplicated!\n");
+//        LOG_DEBUG("Duplicated!\n");
         break;
       }
       // linear probe
@@ -295,8 +295,8 @@ namespace bustub {
     auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(
         buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
     // allocate new pages
-    auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
-        &new_header_page)->GetData());
+    auto header_page = reinterpret_cast<HashTableHeaderPage *>(
+        buffer_pool_manager_->NewPage(&new_header_page)->GetData());
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
     for (int i = 0; i < (int) new_num_blocks; ++i) {
