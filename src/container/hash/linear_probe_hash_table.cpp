@@ -44,7 +44,10 @@ namespace bustub {
     for (int i = 0; i < (int) num_block_pages_; ++i) {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
       header_page->AddBlockPageId(temp_p);
+      // need to unpin after allocation
+      buffer_pool_manager_->UnpinPage(temp_p, false);
     }
+    buffer_pool_manager_->UnpinPage(header_page_id_, true);
 
   }
 
@@ -60,10 +63,10 @@ namespace bustub {
       return false;
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
-    uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
-    int start_id = block_id;
+    uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
+    int start_id = bucket_id;
     // where to start linear probing
-    page_id_t page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
+    page_id_t page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
 
@@ -72,7 +75,7 @@ namespace bustub {
 
     while (true) {
       // if wrapped around
-      if (block_id == start_id + num_buckets_) {
+      if (bucket_id == start_id + num_buckets_) {
         break;
       }
       // fetch block page
@@ -85,7 +88,7 @@ namespace bustub {
         switch_page = false;
       }
       // block_page slot
-      offset = block_id % BLOCK_ARRAY_SIZE;
+      offset = bucket_id % BLOCK_ARRAY_SIZE;
       // if not found
       if (!block_page->IsOccupied(offset)) {
         break;
@@ -96,12 +99,12 @@ namespace bustub {
         result->push_back(block_page->ValueAt(offset));
       }
       // linear probe
-      block_id++;
-      if (block_id % BLOCK_ARRAY_SIZE == 0) {
+      bucket_id++;
+      if (bucket_id % BLOCK_ARRAY_SIZE == 0) {
         switch_page = true;
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
-        page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
+        page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
     buffer_pool_manager_->UnpinPage(page_id, false);
@@ -121,10 +124,10 @@ namespace bustub {
       return false;
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
-    uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
-    uint64_t start_id = block_id;
+    uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
+    uint64_t start_id = bucket_id;
     // where to start linear probing
-    page_id_t page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
+    page_id_t page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
     // if need to insert at some tombstones
@@ -137,7 +140,7 @@ namespace bustub {
 
     while (true) {
       // if wrapped around
-      if (block_id == start_id + num_buckets_) {
+      if (bucket_id == start_id + num_buckets_) {
         break;
       }
       // fetch block page
@@ -150,7 +153,7 @@ namespace bustub {
         switch_page = false;
       }
       // block_page slot
-      offset = block_id % BLOCK_ARRAY_SIZE;
+      offset = bucket_id % BLOCK_ARRAY_SIZE;
 
       // if vacant
       if (!block_page->IsOccupied(offset)) {
@@ -185,14 +188,14 @@ namespace bustub {
         break;
       }
       // linear probe
-      block_id++;
-      if (block_id % BLOCK_ARRAY_SIZE == 0) {
+      bucket_id++;
+      if (bucket_id % BLOCK_ARRAY_SIZE == 0) {
         switch_page = true;
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
           buffer_pool_manager_->UnpinPage(page_id, false);
         }
-        page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
+        page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
     // unpin page_id is handled above
@@ -210,10 +213,10 @@ namespace bustub {
       return false;
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
-    uint64_t block_id = hash_fn_.GetHash(key) % num_buckets_;
-    uint64_t start_id = block_id;
+    uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
+    uint64_t start_id = bucket_id;
     // where to start linear probing
-    page_id_t page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
+    page_id_t page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
 
@@ -224,8 +227,8 @@ namespace bustub {
 
     while (true) {
       // if wrapped around
-//      LOG_DEBUG("Remove Id: %d\n", (int) block_id);
-      if (block_id == start_id + num_buckets_) {
+//      LOG_DEBUG("Remove Id: %d\n", (int) bucket_id);
+      if (bucket_id == start_id + num_buckets_) {
         break;
       }
       // fetch block page
@@ -239,7 +242,7 @@ namespace bustub {
         switch_page = false;
       }
       // block_page slot
-      offset = block_id % BLOCK_ARRAY_SIZE;
+      offset = bucket_id % BLOCK_ARRAY_SIZE;
 //      LOG_DEBUG("Probed: %d!\n", (int) offset);
 
       if (!block_page->IsOccupied(offset)) {
@@ -254,13 +257,13 @@ namespace bustub {
         page_dirty_flag = true;
       }
       // linear probe
-      block_id++;
-      if (block_id % BLOCK_ARRAY_SIZE == 0) {
+      bucket_id++;
+      if (bucket_id % BLOCK_ARRAY_SIZE == 0) {
         switch_page = true;
         // need to unpin page based on whether page is dirty
         buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
         page_dirty_flag = false;
-        page_id = header_page->GetBlockPageId(block_id / BLOCK_ARRAY_SIZE);
+        page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
     buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
@@ -271,31 +274,65 @@ namespace bustub {
 /*****************************************************************************
  * RESIZE
  *****************************************************************************/
+// need to allocate new header and block pages and move contents to new pages
+// update header meta data at the very end
   template<typename KeyType, typename ValueType, typename KeyComparator>
   void HASH_TABLE_TYPE::Resize(size_t initial_size) {
+    page_id_t temp_p, new_header_page, old_page_id;
+    uint64_t bucket_id(0);
+    // for moving contents
+    BLOCK_PAGE_TYPE *block_page(nullptr), *new_block_page(nullptr);
     int new_num_blocks = (size_t) (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
     if (new_num_blocks > MAX_NUM_BLOCK_PAGES)
       return;
+    size_t new_size = new_num_blocks * BLOCK_ARRAY_SIZE;
 
-//    num_block_pages_ = new_num_blocks;
-//    num_buckets_ = new_num_blocks * BLOCK_ARRAY_SIZE;
-//    page_id_t temp_p = INVALID_PAGE_ID;
-//
-//    // allocate header page
-//    header_page_id_ = INVALID_PAGE_ID;
-//    auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
-//        &header_page_id_)->GetData());
-//    header_page->SetSize(num_buckets_);
-//    header_page->SetPageId(header_page_id_);
-//    // block pages, need to add all buckets
-//    for (int i = 0; i < (int) num_block_pages_; ++i) {
-//      buffer_pool_manager_->NewPage(&temp_p, nullptr);
-//      for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; j++)
-//        header_page->AddBlockPageId(temp_p);
-//    }
+    new_header_page = temp_p = INVALID_PAGE_ID;
+    auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
+    // allocate header page
+    auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
+        &header_page_id_)->GetData());
+    header_page->SetSize(new_size);
+    header_page->SetPageId(new_header_page);
+    // block pages, need to add all buckets
+    for (int i = 0; i < (int) new_num_blocks; ++i) {
+      buffer_pool_manager_->NewPage(&temp_p, nullptr);
+      header_page->AddBlockPageId(temp_p);
+    }
 
-
-
+    // move content
+    for (int i = 0; i < (int) num_block_pages_; ++i) {
+      old_page_id = prev_header_page->GetBlockPageId(i);
+      block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
+          (old_page_id));
+      for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
+        bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
+        // if need to fetch a new content page
+        if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != temp_p) {
+          temp_p = bucket_id / BLOCK_ARRAY_SIZE;
+          new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
+              buffer_pool_manager_->FetchPage(
+                  header_page->GetBlockPageId
+              (temp_p))
+          );
+        }
+        if (block_page->IsReadable(j)) {
+          new_block_page->Insert(bucket_id % BLOCK_ARRAY_SIZE,
+              block_page->KeyAt(j), block_page->ValueAt(j));
+        }
+      }
+      // delete block page
+      buffer_pool_manager_->UnpinPage(old_page_id, false);
+      buffer_pool_manager_->DeletePage(old_page_id);
+    }
+    // cleanup: delete old header and reset
+    buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false);
+    buffer_pool_manager_->DeletePage(prev_header_page->GetPageId());
+    header_page_id_ = new_header_page;
+    for (int j = 0; j < new_num_blocks; ++j) {
+      buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
+    }
+    buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
   }
 
 /*****************************************************************************
