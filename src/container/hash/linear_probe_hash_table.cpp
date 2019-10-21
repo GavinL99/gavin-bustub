@@ -306,8 +306,8 @@ namespace bustub {
 
     // move content: need to do linear probing...
     slot_offset_t offset(0);
-
     for (int i = 0; i < (int) num_block_pages_; ++i) {
+      LOG_DEBUG("Block started: %d\n", i);
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
