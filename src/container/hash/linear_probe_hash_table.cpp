@@ -312,7 +312,6 @@ namespace bustub {
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
-        LOG_DEBUG("Block processed: %d, %d\n", i, j);
         // where it should be in the new table
         bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
         // linear probing again
@@ -323,17 +322,19 @@ namespace bustub {
             if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
               // TODO: no need to write back every page...
               if (temp_p != INVALID_PAGE_ID) {
-                buffer_pool_manager_->UnpinPage(temp_p / BLOCK_ARRAY_SIZE, true);
+                buffer_pool_manager_->UnpinPage(temp_p, true);
               }
-              temp_p = bucket_id / BLOCK_ARRAY_SIZE;
+              temp_p = bucket_id;
               new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
                   buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
               );
             }
             if (!new_block_page->IsOccupied(offset)) {
-              new_block_page->Insert(
+              if (new_block_page->Insert(
                   bucket_id % BLOCK_ARRAY_SIZE,
-                  block_page->KeyAt(j), block_page->ValueAt(j));
+                  block_page->KeyAt(j), block_page->ValueAt(j))) {
+                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
+              }
               break;
             }
             bucket_id++;
