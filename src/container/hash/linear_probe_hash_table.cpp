@@ -293,7 +293,7 @@ namespace bustub {
         header_page_id_)->GetData());
     // allocate header page
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
-        &header_page_id_)->GetData());
+        &new_header_page)->GetData());
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
     // block pages, need to add all buckets
@@ -310,7 +310,7 @@ namespace bustub {
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
         bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
         // if need to fetch a new content page
-        if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != temp_p) {
+        if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
           temp_p = bucket_id / BLOCK_ARRAY_SIZE;
           new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
               buffer_pool_manager_->FetchPage(
