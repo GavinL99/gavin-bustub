@@ -324,7 +324,7 @@ namespace bustub {
               if (temp_p != INVALID_PAGE_ID) {
                 buffer_pool_manager_->UnpinPage(temp_p, true);
               }
-              temp_p = bucket_id;
+              temp_p = bucket_id / BLOCK_ARRAY_SIZE;
               new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
                   buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
               );
