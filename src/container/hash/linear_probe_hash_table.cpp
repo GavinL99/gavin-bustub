@@ -139,9 +139,10 @@ namespace bustub {
     BLOCK_PAGE_TYPE *block_page(nullptr), *insert_page(nullptr);
 
     while (true) {
-      // if wrapped around
+      // if wrapped around, need to resize
       if (bucket_id == start_id + num_buckets_) {
-        break;
+        LOG_DEBUG("Insert debug...\n");
+        Resize(num_buckets_);
       }
       // fetch block page
       if (switch_page) {
@@ -250,8 +251,8 @@ namespace bustub {
       }
       // if match, remove and mark page dirty
       if (block_page->IsReadable(offset) &&
-        comparator_(block_page->KeyAt(offset), key) == 0 &&
-        block_page->ValueAt(offset) == value) {
+          comparator_(block_page->KeyAt(offset), key) == 0 &&
+          block_page->ValueAt(offset) == value) {
         remove_flag = true;
         block_page->Remove(offset);
         page_dirty_flag = true;
@@ -288,7 +289,8 @@ namespace bustub {
     size_t new_size = new_num_blocks * BLOCK_ARRAY_SIZE;
 
     new_header_page = temp_p = INVALID_PAGE_ID;
-    auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
+    auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(
+        header_page_id_)->GetData());
     // allocate header page
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
         &header_page_id_)->GetData());
@@ -313,12 +315,12 @@ namespace bustub {
           new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
               buffer_pool_manager_->FetchPage(
                   header_page->GetBlockPageId
-              (temp_p))
+                      (temp_p))
           );
         }
         if (block_page->IsReadable(j)) {
           new_block_page->Insert(bucket_id % BLOCK_ARRAY_SIZE,
-              block_page->KeyAt(j), block_page->ValueAt(j));
+                                 block_page->KeyAt(j), block_page->ValueAt(j));
         }
       }
       // delete block page
@@ -326,9 +328,11 @@ namespace bustub {
       buffer_pool_manager_->DeletePage(old_page_id);
     }
     // cleanup: delete old header and reset
+    header_page_id_ = new_header_page;
+    num_buckets_ = new_size;
+    num_block_pages_ = new_num_blocks;
     buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false);
     buffer_pool_manager_->DeletePage(prev_header_page->GetPageId());
-    header_page_id_ = new_header_page;
     for (int j = 0; j < new_num_blocks; ++j) {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
