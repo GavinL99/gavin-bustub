@@ -283,20 +283,22 @@ namespace bustub {
     uint64_t bucket_id(0);
     // for moving contents
     BLOCK_PAGE_TYPE *block_page(nullptr), *new_block_page(nullptr);
+
     int new_num_blocks = (size_t) (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
-    if (new_num_blocks > MAX_NUM_BLOCK_PAGES)
+    if (new_num_blocks > MAX_NUM_BLOCK_PAGES) {
+      LOG_ERROR("Exceed Limit of Number of Blocks!\n");
       return;
+    }
     size_t new_size = new_num_blocks * BLOCK_ARRAY_SIZE;
 
     new_header_page = temp_p = INVALID_PAGE_ID;
-    auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(
-        header_page_id_)->GetData());
-    // allocate header page
+    auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(
+        buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
+    // allocate new pages
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
         &new_header_page)->GetData());
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
-    // block pages, need to add all buckets
     for (int i = 0; i < (int) new_num_blocks; ++i) {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
       header_page->AddBlockPageId(temp_p);
@@ -308,14 +310,13 @@ namespace bustub {
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
           (old_page_id));
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
+        // where it should be in the new table
         bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
         // if need to fetch a new content page
         if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
           temp_p = bucket_id / BLOCK_ARRAY_SIZE;
           new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
-              buffer_pool_manager_->FetchPage(
-                  header_page->GetBlockPageId
-                      (temp_p))
+              buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
           );
         }
         if (block_page->IsReadable(j)) {

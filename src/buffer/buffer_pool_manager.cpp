@@ -226,6 +226,7 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
       disk_manager_->WritePage(page_id, temp_page->data_);
     }
     ResetPage(temp_page, INVALID_PAGE_ID);
+    disk_manager_->DeallocatePage(page_id);
   }
   latch_.unlock();
   return true;
