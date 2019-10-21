@@ -304,30 +304,42 @@ namespace bustub {
       header_page->AddBlockPageId(temp_p);
     }
 
-    // move content
-    bool insert_flag = false;
+    // move content: need to do linear probing...
+    slot_offset_t offset(0);
+
     for (int i = 0; i < (int) num_block_pages_; ++i) {
       old_page_id = prev_header_page->GetBlockPageId(i);
-      block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
-          (old_page_id));
+      block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
+          buffer_pool_manager_->FetchPage(old_page_id));
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
         // where it should be in the new table
         bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
-        // if need to fetch a new content page
-        if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
-          temp_p = bucket_id / BLOCK_ARRAY_SIZE;
-          new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
-              buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
-          );
-        }
+        // linear probing again
         if (block_page->IsReadable(j)) {
-          insert_flag = new_block_page->Insert(bucket_id % BLOCK_ARRAY_SIZE,
-                                 block_page->KeyAt(j), block_page->ValueAt(j));
-          if (!insert_flag) {
-            LOG_DEBUG("Insert false!\n");
+          offset = bucket_id % BLOCK_ARRAY_SIZE;
+          while (true) {
+            // only hold one new block page
+            if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
+              // TODO: no need to write back every page...
+              if (temp_p != INVALID_PAGE_ID) {
+                buffer_pool_manager_->UnpinPage(temp_p / BLOCK_ARRAY_SIZE, true);
+              }
+              temp_p = bucket_id / BLOCK_ARRAY_SIZE;
+              new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
+                  buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
+              );
+            }
+            if (!new_block_page->IsOccupied(offset)) {
+              new_block_page->Insert(
+                  bucket_id % BLOCK_ARRAY_SIZE,
+                  block_page->KeyAt(j), block_page->ValueAt(j));
+              break;
+            }
+            bucket_id++;
           }
         }
       }
+      // if need to fetch a new content page
       // delete block page
       buffer_pool_manager_->UnpinPage(old_page_id, false);
       buffer_pool_manager_->DeletePage(old_page_id);
