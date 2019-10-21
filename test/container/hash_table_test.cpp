@@ -121,7 +121,7 @@ namespace bustub {
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
     // insert a few values
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
       ht.Insert(nullptr, i, i);
       std::vector<int> res;
       ht.GetValue(nullptr, i, &res);

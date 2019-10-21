@@ -305,6 +305,7 @@ namespace bustub {
     }
 
     // move content
+    bool insert_flag = false;
     for (int i = 0; i < (int) num_block_pages_; ++i) {
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
@@ -320,8 +321,11 @@ namespace bustub {
           );
         }
         if (block_page->IsReadable(j)) {
-          new_block_page->Insert(bucket_id % BLOCK_ARRAY_SIZE,
+          insert_flag = new_block_page->Insert(bucket_id % BLOCK_ARRAY_SIZE,
                                  block_page->KeyAt(j), block_page->ValueAt(j));
+          if (!insert_flag) {
+            LOG_DEBUG("Insert false!\n");
+          }
         }
       }
       // delete block page
