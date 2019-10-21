@@ -128,6 +128,11 @@ namespace bustub {
       EXPECT_EQ(1, res.size()) << "Failed to insert " << i << std::endl;
       EXPECT_EQ(i, res[0]);
     }
+    LOG_DEBUG("SHUT DOWN\n");
+    disk_manager->ShutDown();
+    remove("test.db");
+    delete disk_manager;
+    delete bpm;
 
 
   }
