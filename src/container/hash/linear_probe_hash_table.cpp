@@ -19,6 +19,7 @@
 #include "common/logger.h"
 #include "common/rid.h"
 #include "container/hash/linear_probe_hash_table.h"
+#include "assert.h"
 #include "common/logger.h"
 
 namespace bustub {
@@ -105,6 +106,8 @@ namespace bustub {
         switch_page = true;
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
+        assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
+
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
@@ -206,6 +209,7 @@ namespace bustub {
         if (page_id != insert_page_id) {
           buffer_pool_manager_->UnpinPage(page_id, false);
         }
+        assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
@@ -274,6 +278,7 @@ namespace bustub {
         // need to unpin page based on whether page is dirty
         buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
         page_dirty_flag = false;
+        assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
@@ -336,6 +341,7 @@ namespace bustub {
                 buffer_pool_manager_->UnpinPage(temp_p, true);
               }
               temp_p = bucket_id / BLOCK_ARRAY_SIZE;
+              assert((size_t) temp_p < header_page->NumBlocks());
               new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
                   buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
               );
