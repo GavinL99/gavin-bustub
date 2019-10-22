@@ -366,6 +366,7 @@ namespace bustub {
             break;
           }
           bucket_id = (bucket_id + 1) % new_size;
+          LOG_ERROR("Bucket: %d\n", (int) bucket_id);
         }
 
       }
