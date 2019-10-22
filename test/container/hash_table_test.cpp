@@ -23,12 +23,12 @@ namespace bustub {
 // NOLINTNEXTLINE
   TEST(HashTableTest, SampleTest) {
     auto *disk_manager = new DiskManager("test.db");
-    auto *bpm = new BufferPoolManager(20, disk_manager);
+    auto *bpm = new BufferPoolManager(50, disk_manager);
 
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 100, HashFunction<int>());
 
     // insert a few values
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10000; i++) {
       ht.Insert(nullptr, i, i);
       std::vector<int> res;
       ht.GetValue(nullptr, i, &res);
@@ -37,7 +37,7 @@ namespace bustub {
     }
 
     // check if the inserted values are all there
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10000; i++) {
       std::vector<int> res;
       ht.GetValue(nullptr, i, &res);
       EXPECT_EQ(1, res.size()) << "Failed to keep " << i << std::endl;
@@ -45,7 +45,7 @@ namespace bustub {
     }
 
     // insert one more value for each key
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10000; i++) {
       LOG_DEBUG("Insert: %d\n", i);
       if (i == 0) {
         // duplicate values for the same key are not allowed
@@ -73,7 +73,7 @@ namespace bustub {
     }
 
     // delete some values
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10000; i++) {
       std::vector<int> res;
       ht.GetValue(nullptr, i, &res);
       if (i==0) {
@@ -93,7 +93,7 @@ namespace bustub {
       }
     }
     // delete all values
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 10000; i++) {
       LOG_DEBUG("Delete: %d\n", i);
       if (i == 0) {
         // (0, 0) has been deleted
@@ -111,7 +111,7 @@ namespace bustub {
 
   TEST(HashTableTest, ResizeTest) {
     auto *disk_manager = new DiskManager("test.db");
-    auto *bpm = new BufferPoolManager(20, disk_manager);
+    auto *bpm = new BufferPoolManager(50, disk_manager);
 
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
