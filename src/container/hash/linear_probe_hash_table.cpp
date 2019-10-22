@@ -208,7 +208,6 @@ namespace bustub {
             buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
         switch_page = true;
-        insert_page_id = INVALID_PAGE_ID;
       } else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         // if need to check a new page
         switch_page = true;
@@ -328,6 +327,7 @@ namespace bustub {
       block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>
           (buffer_pool_manager_->NewPage(&allocate_temp_p,
           nullptr));
+      assert(block_pages[i] != nullptr);
       header_page->AddBlockPageId(allocate_temp_p);
     }
     KeyType k_t;
