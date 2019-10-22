@@ -195,7 +195,7 @@ namespace bustub {
       // if wrapped around, need to resize and reset local variables
       // edge case was handled above: wrap around but tombstones found
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
-        LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
+//        LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
         // need to unpin things here before resize to precent mem leak
         buffer_pool_manager_->UnpinPage(header_page_id_, false);
         buffer_pool_manager_->UnpinPage(page_id, false);
@@ -340,7 +340,7 @@ namespace bustub {
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
-      LOG_DEBUG("Start Block: %d\n", (int) i);
+//      LOG_DEBUG("Start Block: %d\n", (int) i);
       // linear probing again
       for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
         if (!block_page->IsReadable(j)) {
@@ -370,7 +370,7 @@ namespace bustub {
       // delete block page
       buffer_pool_manager_->UnpinPage(old_page_id, false);
       if (buffer_pool_manager_->DeletePage(old_page_id)) {
-        LOG_DEBUG("Delete page: %d\n", (int) old_page_id);
+//        LOG_DEBUG("Delete page: %d\n", (int) old_page_id);
       }
 //      LOG_DEBUG("Finished block: %d\n", i);
     }
@@ -381,7 +381,7 @@ namespace bustub {
     num_block_pages_ = new_num_blocks;
     buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false);
     if (buffer_pool_manager_->DeletePage(prev_header_page->GetPageId())) {
-      LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
+//      LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
     }
     for (size_t j = 0; j < new_num_blocks; ++j) {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);

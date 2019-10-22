@@ -12,6 +12,7 @@
 
 #include "storage/page/hash_table_block_page.h"
 #include "storage/index/generic_key.h"
+#include "cassert"
 
 namespace bustub {
 
@@ -58,6 +59,7 @@ bool HASH_TABLE_BLOCK_TYPE::IsOccupied(slot_offset_t bucket_ind) const {
   unsigned int one = 0x01;
   size_t char_idx = bucket_ind / 8;
   size_t bit_idx = bucket_ind % 8;
+  assert(char_idx < ((BLOCK_ARRAY_SIZE - 1) / 8 + 1));
   return (occupied_[char_idx] >> bit_idx) & one;
 }
 
