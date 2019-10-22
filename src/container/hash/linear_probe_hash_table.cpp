@@ -55,10 +55,12 @@ namespace bustub {
   bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std::vector<ValueType> *result) {
     // hash f -> page_id -> block page -> linear probe -> stop till not occupied
     // get the actual data
+    table_latch_.RLock();
     Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
     if (temp_page == nullptr) {
       return false;
     }
+    temp_page->RLatch();
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
@@ -77,6 +79,7 @@ namespace bustub {
         if (temp_page == nullptr) {
           break;
         }
+        temp_page->RLatch();
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
         switch_page = false;
       }
@@ -102,12 +105,14 @@ namespace bustub {
         switch_page = true;
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
-        assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
+        temp_page->RUnlatch();
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
     buffer_pool_manager_->UnpinPage(page_id, false);
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    temp_page->RUnlatch();
+    table_latch_.RUnlock();
     return !result->empty();
   }
 
