@@ -358,7 +358,7 @@ namespace bustub {
 //          }
           new_block_page = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
           offset = bucket_id % BLOCK_ARRAY_SIZE;
-          LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
+//          LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
           if (!new_block_page->IsOccupied(offset)) {
             if (new_block_page->Insert(
                 offset, k_t, v_t)) {
