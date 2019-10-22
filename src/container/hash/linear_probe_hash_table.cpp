@@ -56,12 +56,12 @@ namespace bustub {
     // hash f -> page_id -> block page -> linear probe -> stop till not occupied
     // get the actual data
     table_latch_.RLock();
-    Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (temp_page == nullptr) {
+    Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+    if (header_page_p == nullptr) {
       return false;
     }
-    temp_page->RLatch();
-    auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
+    header_page_p->RLatch();
+    auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
     // where to start linear probing
@@ -71,15 +71,23 @@ namespace bustub {
 
     slot_offset_t offset;
     BLOCK_PAGE_TYPE *block_page(nullptr);
+    // crab latch and unlatch
+    Page* temp_page(nullptr);
+    Page* next_latch_page(nullptr);
 
     while (true) {
-      // fetch block page
+      // need to fetch a new block page
       if (switch_page) {
-        temp_page = buffer_pool_manager_->FetchPage(page_id);
-        if (temp_page == nullptr) {
-          break;
+        // if need to latch the next page
+        if (temp_page != nullptr) {
+          next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+          next_latch_page->RLatch();
+          temp_page->RUnlatch();
+          temp_page = next_latch_page;
+        } else {
+          temp_page = buffer_pool_manager_->FetchPage(page_id);
+          temp_page->RLatch();
         }
-        temp_page->RLatch();
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
         switch_page = false;
       }
@@ -105,13 +113,13 @@ namespace bustub {
         switch_page = true;
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
-        temp_page->RUnlatch();
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
     buffer_pool_manager_->UnpinPage(page_id, false);
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
     temp_page->RUnlatch();
+    header_page_p->RUnlatch();
     table_latch_.RUnlock();
     return !result->empty();
   }
@@ -233,6 +241,7 @@ namespace bustub {
  *****************************************************************************/
   template<typename KeyType, typename ValueType, typename KeyComparator>
   bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const ValueType &value) {
+    table_latch_.RLock();
     Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
     if (temp_page == nullptr) {
       return false;
@@ -293,6 +302,7 @@ namespace bustub {
     }
     buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    table_latch_.RUnlock();
     return remove_flag;
   }
 
