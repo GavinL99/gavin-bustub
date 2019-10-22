@@ -322,6 +322,7 @@ namespace bustub {
       header_page->AddBlockPageId(allocate_temp_p);
       block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(allocate_temp_p));
+      buffer_pool_manager_->UnpinPage(allocate_temp_p, false);
     }
     KeyType k_t;
     ValueType v_t;
@@ -357,7 +358,6 @@ namespace bustub {
           }
           bucket_id = (bucket_id + 1) % new_size;
         }
-
       }
       // if need to fetch a new content page
       // delete block page
