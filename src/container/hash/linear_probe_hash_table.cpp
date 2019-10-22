@@ -107,7 +107,6 @@ namespace bustub {
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
         assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
-
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
@@ -187,12 +186,16 @@ namespace bustub {
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
         buffer_pool_manager_->UnpinPage(page_id, false);
+        if (insert_page_id != INVALID_PAGE_ID) {
+          buffer_pool_manager_->UnpinPage(insert_page_id, false);
+        }
 //        LOG_DEBUG("Duplicated!\n");
         break;
       }
       // linear probe
       bucket_id = (bucket_id + 1) % num_buckets_;
       // if wrapped around, need to resize and reset local variables
+      // edge case was handled above: wrap around but tombstones found
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
         LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
         Resize(num_buckets_);
@@ -204,6 +207,7 @@ namespace bustub {
         switch_page = true;
         insert_page_id = INVALID_PAGE_ID;
       } else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
+        // if need to check a new page
         switch_page = true;
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
@@ -318,11 +322,10 @@ namespace bustub {
     auto block_pages = new BLOCK_PAGE_TYPE*[new_num_blocks];
 
     for (int i = 0; i < (int) new_num_blocks; ++i) {
-      buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr);
+      block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>
+          (buffer_pool_manager_->NewPage(&allocate_temp_p,
+          nullptr));
       header_page->AddBlockPageId(allocate_temp_p);
-      block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>(
-          buffer_pool_manager_->FetchPage(allocate_temp_p));
-      buffer_pool_manager_->UnpinPage(allocate_temp_p, false);
     }
     KeyType k_t;
     ValueType v_t;
@@ -373,7 +376,9 @@ namespace bustub {
     num_buckets_ = new_size;
     num_block_pages_ = new_num_blocks;
     buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false);
-    buffer_pool_manager_->DeletePage(prev_header_page->GetPageId());
+    if (buffer_pool_manager_->DeletePage(prev_header_page->GetPageId())) {
+      LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
+    };
     for (int j = 0; j < new_num_blocks; ++j) {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
