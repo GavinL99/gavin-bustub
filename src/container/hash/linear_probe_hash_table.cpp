@@ -159,7 +159,7 @@ namespace bustub {
       // if vacant or have checked all but no duplicates
       // and there's tombstone to insert
       if (!block_page->IsOccupied(offset) ||
-        (bucket_id == start_id && insert_page_id != INVALID_PAGE_ID)) {
+          (bucket_id == start_id && insert_page_id != INVALID_PAGE_ID)) {
         // if insert into tombstones
         if (insert_page_id != INVALID_PAGE_ID) {
           insert_page->Insert(insert_offset, key, value);
@@ -294,7 +294,7 @@ namespace bustub {
 // update header meta data at the very end
   template<typename KeyType, typename ValueType, typename KeyComparator>
   void HASH_TABLE_TYPE::Resize(size_t initial_size) {
-    page_id_t temp_p, new_header_page, old_page_id;
+    page_id_t allocate_temp_p, temp_p, new_header_page, old_page_id;
     uint64_t bucket_id(0);
     // for moving contents
     BLOCK_PAGE_TYPE *block_page(nullptr), *new_block_page(nullptr);
@@ -306,7 +306,7 @@ namespace bustub {
     }
     size_t new_size = new_num_blocks * BLOCK_ARRAY_SIZE;
 
-    new_header_page = temp_p = INVALID_PAGE_ID;
+    new_header_page = allocate_temp_p = temp_p = INVALID_PAGE_ID;
     auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(
         buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
     // allocate new pages
@@ -315,10 +315,9 @@ namespace bustub {
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
     for (int i = 0; i < (int) new_num_blocks; ++i) {
-      buffer_pool_manager_->NewPage(&temp_p, nullptr);
-      header_page->AddBlockPageId(temp_p);
+      buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr);
+      header_page->AddBlockPageId(allocate_temp_p);
     }
-    temp_p = INVALID_PAGE_ID;
 
     // move content: need to do linear probing...
     slot_offset_t offset(0);
@@ -329,37 +328,34 @@ namespace bustub {
       LOG_DEBUG("Start Block: %d\n", i);
       // linear probing again
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
-//        LOG_DEBUG("Start Block: %d, %d\n", i, j);
-        if (block_page->IsReadable(j)) {
-          // where it should be in the new table
-          bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
-          while (true) {
-            // only hold one new block page
-            if (temp_p == INVALID_PAGE_ID ||
-              bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
-//              // TODO: no need to write back every page...
-//              if (temp_p != INVALID_PAGE_ID) {
-//                buffer_pool_manager_->UnpinPage(temp_p, true);
-//              }
-              temp_p = bucket_id / BLOCK_ARRAY_SIZE;
-              assert((size_t) temp_p < header_page->NumBlocks());
-              new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
-                  buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
-              );
-              LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
-            }
-            offset = bucket_id % BLOCK_ARRAY_SIZE;
-            if (!new_block_page->IsOccupied(offset)) {
-              if (new_block_page->Insert(
-                  bucket_id % BLOCK_ARRAY_SIZE,
-                  block_page->KeyAt(j), block_page->ValueAt(j))) {
-//                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
-              }
-              break;
-            }
-            bucket_id = (bucket_id + 1) % new_size;
-          }
+        if (!block_page->IsReadable(j)) {
+          continue;
         }
+//        LOG_DEBUG("Start Block: %d, %d\n", i, j);
+        // where it should be in the new table
+        bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
+        while (true) {
+          // if need to fetch new block page
+          if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
+            temp_p = bucket_id / BLOCK_ARRAY_SIZE;
+            assert((size_t) temp_p < header_page->NumBlocks());
+            new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
+                buffer_pool_manager_->FetchPage(
+                    header_page->GetBlockPageId(temp_p))
+            );
+            LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
+          }
+          offset = bucket_id % BLOCK_ARRAY_SIZE;
+          if (!new_block_page->IsOccupied(offset)) {
+            if (new_block_page->Insert(
+                offset, block_page->KeyAt(j), block_page->ValueAt(j))) {
+                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
+            }
+            break;
+          }
+          bucket_id = (bucket_id + 1) % new_size;
+        }
+
       }
       // if need to fetch a new content page
       // delete block page
