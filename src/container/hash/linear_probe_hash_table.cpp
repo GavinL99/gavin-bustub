@@ -320,6 +320,7 @@ namespace bustub {
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
+      LOG_DEBUG("Start Block: %d\n", i);
       // linear probing again
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
         if (block_page->IsReadable(j)) {
