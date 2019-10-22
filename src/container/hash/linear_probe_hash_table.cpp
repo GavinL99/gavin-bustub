@@ -327,7 +327,6 @@ namespace bustub {
         if (block_page->IsReadable(j)) {
           // where it should be in the new table
           bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
-          offset = bucket_id % BLOCK_ARRAY_SIZE;
           while (true) {
             // only hold one new block page
             if (temp_p == INVALID_PAGE_ID ||
@@ -342,6 +341,7 @@ namespace bustub {
               );
               LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
             }
+            offset = bucket_id % BLOCK_ARRAY_SIZE;
             if (!new_block_page->IsOccupied(offset)) {
               if (new_block_page->Insert(
                   bucket_id % BLOCK_ARRAY_SIZE,
