@@ -386,7 +386,7 @@ namespace bustub {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
     buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
-    free(block_pages);
+    delete[] block_pages;
   }
 
 /*****************************************************************************
