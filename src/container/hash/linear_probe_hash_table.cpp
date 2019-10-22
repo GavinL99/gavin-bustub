@@ -348,6 +348,7 @@ namespace bustub {
       LOG_DEBUG("Clean up: %d\n", i);
     }
     // cleanup: delete old header and reset
+    LOG_DEBUG("Reset headers...\n");
     header_page_id_ = new_header_page;
     num_buckets_ = new_size;
     num_block_pages_ = new_num_blocks;
