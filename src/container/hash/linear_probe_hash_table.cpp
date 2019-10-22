@@ -191,7 +191,7 @@ namespace bustub {
       bucket_id = (bucket_id + 1) % num_buckets_;
       // if wrapped around, need to resize and reset local variables
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
-        LOG_DEBUG("Insert Resize...\n");
+        LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
         Resize(num_buckets_);
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
         start_id = bucket_id;
@@ -357,7 +357,7 @@ namespace bustub {
       LOG_DEBUG("Finished block: %d\n", i);
     }
     // cleanup: delete old header and reset
-    LOG_DEBUG("Reset headers...\n");
+//    LOG_DEBUG("Reset headers...\n");
     header_page_id_ = new_header_page;
     num_buckets_ = new_size;
     num_block_pages_ = new_num_blocks;
