@@ -13,7 +13,7 @@
 #include "storage/page/hash_table_header_page.h"
 
 namespace bustub {
-page_id_t HashTableHeaderPage::GetBlockPageId(size_t index) { 
+page_id_t HashTableHeaderPage::GetBlockPageId(size_t index) {
   return block_page_ids_[index];
 }
 
@@ -32,7 +32,7 @@ void HashTableHeaderPage::AddBlockPageId(page_id_t page_id) {
 
 size_t HashTableHeaderPage::NumBlocks() { return next_ind_; }
 
-void HashTableHeaderPage::SetSize(size_t size){ size_ = size; }
+void HashTableHeaderPage::SetSize(size_t size) { size_ = size; }
 
 size_t HashTableHeaderPage::GetSize() const { return size_; }
 

@@ -76,7 +76,7 @@ namespace bustub {
     for (int i = 0; i < 10000; i++) {
       std::vector<int> res;
       ht.GetValue(nullptr, i, &res);
-      if (i==0) {
+      if (i == 0) {
         EXPECT_EQ(1, res.size());
       } else {
         EXPECT_EQ(2, res.size());

@@ -98,7 +98,6 @@ class LinearProbeHashTable : public HashTable<KeyType, ValueType, KeyComparator>
 
   // Hash function
   HashFunction<KeyType> hash_fn_;
-  
   // members added
   // number of block pages allocated
   size_t num_block_pages_;
@@ -106,7 +105,6 @@ class LinearProbeHashTable : public HashTable<KeyType, ValueType, KeyComparator>
   size_t num_buckets_;
 
   using BLOCK_PAGE_TYPE = HashTableBlockPage<KeyType, ValueType, KeyComparator>;
-
 };
 
 }  // namespace bustub
