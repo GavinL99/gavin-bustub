@@ -189,12 +189,14 @@ namespace bustub {
       }
       // linear probe
       bucket_id = (bucket_id + 1) % num_buckets_;
-      // if wrapped around, need to resize
+      // if wrapped around, need to resize and reset local variables
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
         LOG_DEBUG("Insert Resize...\n");
         Resize(num_buckets_);
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
         start_id = bucket_id;
+        header_page = reinterpret_cast<HashTableHeaderPage *>(
+            buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
         switch_page = true;
         insert_page_id = INVALID_PAGE_ID;
