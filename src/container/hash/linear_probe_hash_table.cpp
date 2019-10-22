@@ -198,6 +198,9 @@ namespace bustub {
       // edge case was handled above: wrap around but tombstones found
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
         LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
+        // need to unpin things here before resize to precent mem leak
+        buffer_pool_manager_->UnpinPage(header_page_id_, false);
+        buffer_pool_manager_->UnpinPage(page_id, false);
         Resize(num_buckets_);
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
         start_id = bucket_id;
