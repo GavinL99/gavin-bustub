@@ -29,7 +29,7 @@ namespace bustub {
       : buffer_pool_manager_(buffer_pool_manager), comparator_(comparator), hash_fn_(std::move(hash_fn)) {
     // allocate memory for header / block pages based on num_buckets, assume always success
     page_id_t temp_p = INVALID_PAGE_ID;
-    num_block_pages_ = (size_t) (num_buckets + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
+    num_block_pages_ =  (num_buckets + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
     num_buckets_ = num_block_pages_ * BLOCK_ARRAY_SIZE;
 
     // allocate header page
@@ -56,7 +56,7 @@ namespace bustub {
     // hash f -> page_id -> block page -> linear probe -> stop till not occupied
     // get the actual data
     Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (!temp_page) {
+    if (temp_page == nullptr) {
       return false;
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
@@ -74,7 +74,7 @@ namespace bustub {
       // fetch block page
       if (switch_page) {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
-        if (!temp_page) {
+        if (temp_page == nullptr) {
           break;
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -119,7 +119,7 @@ namespace bustub {
     // need to traverse until the first vacant slot in case of duplicates
     // but insertion can be tombstones in the middle
     Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (!temp_page) {
+    if (temp_page == nullptr) {
       return false;
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
@@ -134,14 +134,16 @@ namespace bustub {
 
     // for tombstones insertion
     page_id_t insert_page_id = INVALID_PAGE_ID;
-    slot_offset_t offset(0), insert_offset(0);
-    BLOCK_PAGE_TYPE *block_page(nullptr), *insert_page(nullptr);
+    slot_offset_t offset(0);
+    slot_offset_t insert_offset(0);
+    BLOCK_PAGE_TYPE *block_page(nullptr);
+    BLOCK_PAGE_TYPE *insert_page(nullptr);
 
     while (true) {
       // fetch block page
       if (switch_page) {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
-        if (!temp_page) {
+        if (temp_page == nullptr) {
           break;
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -227,7 +229,7 @@ namespace bustub {
   template<typename KeyType, typename ValueType, typename KeyComparator>
   bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const ValueType &value) {
     Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (!temp_page) {
+    if (temp_page == nullptr) {
       return false;
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
@@ -248,7 +250,7 @@ namespace bustub {
       if (switch_page) {
 //        LOG_DEBUG("Page Switched!\n");
         temp_page = buffer_pool_manager_->FetchPage(page_id);
-        if (!temp_page) {
+        if (temp_page == nullptr) {
           break;
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -296,12 +298,15 @@ namespace bustub {
 // update header meta data at the very end
   template<typename KeyType, typename ValueType, typename KeyComparator>
   void HASH_TABLE_TYPE::Resize(size_t initial_size) {
-    page_id_t allocate_temp_p, new_header_page, old_page_id;
+    page_id_t allocate_temp_p;
+    page_id_t new_header_page;
+    page_id_t old_page_id;
     uint64_t bucket_id(0);
     // for moving contents
-    BLOCK_PAGE_TYPE *block_page(nullptr), *new_block_page(nullptr);
+    BLOCK_PAGE_TYPE *block_page(nullptr);
+    BLOCK_PAGE_TYPE *new_block_page(nullptr);
 
-    size_t new_num_blocks = (size_t) (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
+    size_t new_num_blocks = (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
     if (new_num_blocks > MAX_NUM_BLOCK_PAGES) {
       LOG_ERROR("Exceed Limit of Number of Blocks!\n");
       return;

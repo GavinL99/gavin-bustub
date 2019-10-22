@@ -27,9 +27,8 @@ ValueType HASH_TABLE_BLOCK_TYPE::ValueAt(slot_offset_t bucket_ind) const {
 
 template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key, const ValueType &value) {
-  size_t char_idx, bit_idx;
-  char_idx = bucket_ind / 8;
-  bit_idx = bucket_ind % 8;
+  size_t char_idx = bucket_ind / 8;
+  size_t bit_idx = bucket_ind % 8;
   // can still insert if tombstone
   if ((occupied_[char_idx] >> bit_idx) & 0x01 && (readable_[char_idx] >> bit_idx) & 0x01) {
       return false;
@@ -45,10 +44,9 @@ bool HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key,
 template <typename KeyType, typename ValueType, typename KeyComparator>
 void HASH_TABLE_BLOCK_TYPE::Remove(slot_offset_t bucket_ind) {
   // only set readable to 0
-  size_t char_idx, bit_idx;
   unsigned int one = 0x01;
-  char_idx = bucket_ind / 8;
-  bit_idx = bucket_ind % 8;
+  size_t char_idx = bucket_ind / 8;
+  size_t bit_idx = bucket_ind % 8;
   // if occupied
   if ((occupied_[char_idx] >> bit_idx) & one) {
     readable_[char_idx] ^= (one << bit_idx);
@@ -57,19 +55,17 @@ void HASH_TABLE_BLOCK_TYPE::Remove(slot_offset_t bucket_ind) {
 
 template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_BLOCK_TYPE::IsOccupied(slot_offset_t bucket_ind) const {
-  size_t char_idx, bit_idx;
   unsigned int one = 0x01;
-  char_idx = bucket_ind / 8;
-  bit_idx = bucket_ind % 8;
+  size_t char_idx = bucket_ind / 8;
+  size_t bit_idx = bucket_ind % 8;
   return (occupied_[char_idx] >> bit_idx) & one;
 }
 
 template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_BLOCK_TYPE::IsReadable(slot_offset_t bucket_ind)  const {
-  size_t char_idx, bit_idx;
   unsigned int one = 0x01;
-  char_idx = bucket_ind / 8;
-  bit_idx = bucket_ind % 8;
+  size_t char_idx = bucket_ind / 8;
+  size_t bit_idx = bucket_ind % 8;
   return (readable_[char_idx] >> bit_idx) & one;
 }
 
