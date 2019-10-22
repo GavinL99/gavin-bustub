@@ -311,11 +311,11 @@ namespace bustub {
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
+      // linear probing again
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
-        // where it should be in the new table
-        bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
-        // linear probing again
         if (block_page->IsReadable(j)) {
+          // where it should be in the new table
+          bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
           offset = bucket_id % BLOCK_ARRAY_SIZE;
           while (true) {
             // only hold one new block page
