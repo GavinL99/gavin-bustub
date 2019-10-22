@@ -153,8 +153,10 @@ namespace bustub {
       offset = bucket_id % BLOCK_ARRAY_SIZE;
 //      LOG_DEBUG("Probe: %d!\n", (int) offset);
 
-      // if vacant
-      if (!block_page->IsOccupied(offset)) {
+      // if vacant or have checked all but no duplicates
+      // and there's tombstone to insert
+      if (!block_page->IsOccupied(offset) ||
+        (bucket_id == start_id && insert_page_id != INVALID_PAGE_ID)) {
         // if insert into tombstones
         if (insert_page_id != INVALID_PAGE_ID) {
           insert_page->Insert(insert_offset, key, value);
