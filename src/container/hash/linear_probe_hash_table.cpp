@@ -64,7 +64,7 @@ namespace bustub {
     }
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
-    int start_id = bucket_id;
+    uint64_t start_id = bucket_id;
     // where to start linear probing
     page_id_t page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
     // if need to read a new page or check the next page (or wrap around)
@@ -75,7 +75,7 @@ namespace bustub {
 
     while (true) {
       // if wrapped around
-      if (bucket_id == start_id + num_buckets_) {
+      if (bucket_id == start_id) {
         break;
       }
       // fetch block page
@@ -99,8 +99,9 @@ namespace bustub {
         result->push_back(block_page->ValueAt(offset));
       }
       // linear probe
-      bucket_id++;
-      if (bucket_id % BLOCK_ARRAY_SIZE == 0) {
+      bucket_id = (bucket_id + 1) % num_buckets_;
+      // only switch if have more than 1 page
+      if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // need to unpin page
         buffer_pool_manager_->UnpinPage(page_id, false);
@@ -140,7 +141,7 @@ namespace bustub {
 
     while (true) {
       // if wrapped around, need to resize
-      if (bucket_id == start_id + num_buckets_) {
+      if (bucket_id == start_id) {
         LOG_DEBUG("Insert Resize...\n");
         Resize(num_buckets_);
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
@@ -159,7 +160,7 @@ namespace bustub {
       }
       // block_page slot
       offset = bucket_id % BLOCK_ARRAY_SIZE;
-      LOG_DEBUG("Probe: %d!\n", (int) offset);
+//      LOG_DEBUG("Probe: %d!\n", (int) offset);
 
       // if vacant
       if (!block_page->IsOccupied(offset)) {
@@ -195,8 +196,8 @@ namespace bustub {
         break;
       }
       // linear probe
-      bucket_id++;
-      if (bucket_id % BLOCK_ARRAY_SIZE == 0) {
+      bucket_id = (bucket_id + 1) % num_buckets_;
+      if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
@@ -207,7 +208,7 @@ namespace bustub {
     }
     // unpin page_id is handled above
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
-    LOG_DEBUG("Unpin page..\n");
+//    LOG_DEBUG("Unpin page..\n");
     return insert_flag;
   }
 
@@ -236,7 +237,7 @@ namespace bustub {
     while (true) {
       // if wrapped around
 //      LOG_DEBUG("Remove Id: %d\n", (int) bucket_id);
-      if (bucket_id == start_id + num_buckets_) {
+      if (bucket_id == start_id) {
         break;
       }
       // fetch block page
@@ -265,8 +266,8 @@ namespace bustub {
         page_dirty_flag = true;
       }
       // linear probe
-      bucket_id++;
-      if (bucket_id % BLOCK_ARRAY_SIZE == 0) {
+      bucket_id = (bucket_id + 1) % num_buckets_;
+      if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // need to unpin page based on whether page is dirty
         buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
