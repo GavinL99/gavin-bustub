@@ -159,6 +159,7 @@ namespace bustub {
       }
       // block_page slot
       offset = bucket_id % BLOCK_ARRAY_SIZE;
+      LOG_DEBUG("Probe: %d!\n", (int) offset);
 
       // if vacant
       if (!block_page->IsOccupied(offset)) {
@@ -189,7 +190,7 @@ namespace bustub {
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
         buffer_pool_manager_->UnpinPage(page_id, false);
-        LOG_DEBUG("Duplicated!\n");
+//        LOG_DEBUG("Duplicated!\n");
         break;
       }
       // linear probe
@@ -248,7 +249,7 @@ namespace bustub {
       }
       // block_page slot
       offset = bucket_id % BLOCK_ARRAY_SIZE;
-      LOG_DEBUG("Probed: %d!\n", (int) offset);
+//      LOG_DEBUG("Probed: %d!\n", (int) offset);
 
       if (!block_page->IsOccupied(offset)) {
         break;
