@@ -330,7 +330,8 @@ namespace bustub {
           offset = bucket_id % BLOCK_ARRAY_SIZE;
           while (true) {
             // only hold one new block page
-            if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
+            if (temp_p == INVALID_PAGE_ID ||
+              bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
               // TODO: no need to write back every page...
               if (temp_p != INVALID_PAGE_ID) {
                 buffer_pool_manager_->UnpinPage(temp_p, true);
@@ -339,6 +340,7 @@ namespace bustub {
               new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
                   buffer_pool_manager_->FetchPage(header_page->GetBlockPageId(temp_p))
               );
+              LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
             }
             if (!new_block_page->IsOccupied(offset)) {
               if (new_block_page->Insert(
