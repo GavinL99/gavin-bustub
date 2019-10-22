@@ -323,6 +323,7 @@ namespace bustub {
       LOG_DEBUG("Start Block: %d\n", i);
       // linear probing again
       for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
+        LOG_DEBUG("Start Block: %d, %d\n", i, j);
         if (block_page->IsReadable(j)) {
           // where it should be in the new table
           bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
