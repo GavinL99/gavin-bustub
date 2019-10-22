@@ -341,6 +341,7 @@ namespace bustub {
           }
         }
       }
+      LOG_DEBUG("Clean up: %d\n", i);
       // if need to fetch a new content page
       // delete block page
       buffer_pool_manager_->UnpinPage(old_page_id, false);
