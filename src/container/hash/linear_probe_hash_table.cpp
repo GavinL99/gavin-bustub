@@ -14,13 +14,10 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "common/exception.h"
 #include "common/logger.h"
 #include "common/rid.h"
 #include "container/hash/linear_probe_hash_table.h"
-#include "assert.h"
-#include "common/logger.h"
+#include "cassert"
 
 namespace bustub {
 #define MAX_NUM_BLOCK_PAGES 1020
@@ -51,7 +48,6 @@ namespace bustub {
     buffer_pool_manager_->UnpinPage(header_page_id_, true);
 
   }
-
 /*****************************************************************************
  * SEARCH
  *****************************************************************************/
@@ -321,12 +317,12 @@ namespace bustub {
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
 
-    auto block_pages = new BLOCK_PAGE_TYPE*[new_num_blocks];
+    auto block_pages = new BLOCK_PAGE_TYPE *[new_num_blocks];
 
-    for (int i = 0; i < (int) new_num_blocks; ++i) {
+    for (size_t i = 0; i < new_num_blocks; ++i) {
       block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>
-          (buffer_pool_manager_->NewPage(&allocate_temp_p,
-          nullptr));
+      (buffer_pool_manager_->NewPage(&allocate_temp_p,
+                                     nullptr));
       assert(block_pages[i] != nullptr);
       header_page->AddBlockPageId(allocate_temp_p);
     }
@@ -335,13 +331,13 @@ namespace bustub {
 
     // move content: need to do linear probing...
     slot_offset_t offset(0);
-    for (int i = 0; i < (int) num_block_pages_; ++i) {
+    for (size_t i = 0; i < num_block_pages_; ++i) {
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
       LOG_DEBUG("Start Block: %d\n", i);
       // linear probing again
-      for (int j = 0; j < (int) BLOCK_ARRAY_SIZE; ++j) {
+      for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
         if (!block_page->IsReadable(j)) {
           continue;
         }
