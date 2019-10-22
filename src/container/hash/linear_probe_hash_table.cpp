@@ -151,8 +151,8 @@ namespace bustub {
       }
       // block_page slot
       offset = bucket_id % BLOCK_ARRAY_SIZE;
-//      LOG_DEBUG("Probe: %d!\n", (int) offset);
 
+      // Two cases of success:
       // if vacant or have checked all but no duplicates
       // and there's tombstone to insert
       if (!block_page->IsOccupied(offset) ||
@@ -190,13 +190,14 @@ namespace bustub {
       // linear probe
       bucket_id = (bucket_id + 1) % num_buckets_;
       // if wrapped around, need to resize
-      if (bucket_id == start_id) {
+      if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
         LOG_DEBUG("Insert Resize...\n");
         Resize(num_buckets_);
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
         start_id = bucket_id;
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
         switch_page = true;
+        insert_page_id = INVALID_PAGE_ID;
       } else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // unpin page if no possible insertion
@@ -314,7 +315,6 @@ namespace bustub {
     // move content: need to do linear probing...
     slot_offset_t offset(0);
     for (int i = 0; i < (int) num_block_pages_; ++i) {
-      LOG_DEBUG("Block started: %d\n", i);
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
@@ -340,7 +340,7 @@ namespace bustub {
               if (new_block_page->Insert(
                   bucket_id % BLOCK_ARRAY_SIZE,
                   block_page->KeyAt(j), block_page->ValueAt(j))) {
-                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
+//                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
               }
               break;
             }
@@ -352,7 +352,7 @@ namespace bustub {
       // delete block page
       buffer_pool_manager_->UnpinPage(old_page_id, false);
       buffer_pool_manager_->DeletePage(old_page_id);
-      LOG_DEBUG("Clean up: %d\n", i);
+      LOG_DEBUG("Finished block: %d\n", i);
     }
     // cleanup: delete old header and reset
     LOG_DEBUG("Reset headers...\n");
