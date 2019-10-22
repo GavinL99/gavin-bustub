@@ -46,8 +46,8 @@ namespace bustub {
       buffer_pool_manager_->UnpinPage(temp_p, false);
     }
     buffer_pool_manager_->UnpinPage(header_page_id_, true);
-
   }
+
 /*****************************************************************************
  * SEARCH
  *****************************************************************************/
@@ -301,7 +301,7 @@ namespace bustub {
     // for moving contents
     BLOCK_PAGE_TYPE *block_page(nullptr), *new_block_page(nullptr);
 
-    int new_num_blocks = (size_t) (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
+    size_t new_num_blocks = (size_t) (2 * initial_size + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
     if (new_num_blocks > MAX_NUM_BLOCK_PAGES) {
       LOG_ERROR("Exceed Limit of Number of Blocks!\n");
       return;
@@ -335,7 +335,7 @@ namespace bustub {
       old_page_id = prev_header_page->GetBlockPageId(i);
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
           buffer_pool_manager_->FetchPage(old_page_id));
-      LOG_DEBUG("Start Block: %d\n", i);
+      LOG_DEBUG("Start Block: %d\n", (int) i);
       // linear probing again
       for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
         if (!block_page->IsReadable(j)) {

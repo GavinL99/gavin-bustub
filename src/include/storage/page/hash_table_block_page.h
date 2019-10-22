@@ -33,8 +33,8 @@ namespace bustub {
  *  Here '+' means concatenation.
  *
  */
-  template<typename KeyType, typename ValueType, typename KeyComparator>
-  class HashTableBlockPage {
+template<typename KeyType, typename ValueType, typename KeyComparator>
+class HashTableBlockPage {
   public:
     // Delete all constructor / destructor to ensure memory safety
     HashTableBlockPage() = delete;
@@ -99,6 +99,6 @@ namespace bustub {
     // 0 if tombstone/brand new (never occupied), 1 otherwise.
     std::atomic_char readable_[(BLOCK_ARRAY_SIZE - 1) / 8 + 1];
     MappingType array_[0];
-  };
+};
 
 }  // namespace bustub
