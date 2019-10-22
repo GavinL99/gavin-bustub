@@ -340,7 +340,7 @@ namespace bustub {
         }
         k_t = block_page->KeyAt(j);
         v_t = block_page->ValueAt(j);
-        LOG_DEBUG("Start Block: %d, %d\n", i, j);
+//        LOG_DEBUG("Start Block: %d, %d\n", i, j);
         // where it should be in the new table
         bucket_id = hash_fn_.GetHash(k_t) % new_size;
 
