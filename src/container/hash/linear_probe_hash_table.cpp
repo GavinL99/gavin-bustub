@@ -141,8 +141,12 @@ namespace bustub {
     while (true) {
       // if wrapped around, need to resize
       if (bucket_id == start_id + num_buckets_) {
-        LOG_DEBUG("Insert debug...\n");
+        LOG_DEBUG("Insert Resize...\n");
         Resize(num_buckets_);
+        bucket_id = hash_fn_.GetHash(key) % num_buckets_;
+        start_id = bucket_id;
+        page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
+        switch_page = true;
       }
       // fetch block page
       if (switch_page) {
