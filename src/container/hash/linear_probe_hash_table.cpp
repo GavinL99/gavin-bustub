@@ -378,7 +378,7 @@ namespace bustub {
     if (buffer_pool_manager_->DeletePage(prev_header_page->GetPageId())) {
       LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
     }
-    for (int j = 0; j < new_num_blocks; ++j) {
+    for (size_t j = 0; j < new_num_blocks; ++j) {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
     buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
