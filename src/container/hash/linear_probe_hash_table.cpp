@@ -350,7 +350,7 @@ namespace bustub {
               }
               break;
             }
-            bucket_id++;
+            bucket_id = (bucket_id + 1) % num_buckets_;
           }
         }
       }
