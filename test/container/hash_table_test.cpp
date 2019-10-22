@@ -72,11 +72,6 @@ namespace bustub {
       }
     }
 
-    // look for a key that does not exist
-//    std::vector<int> res;
-//    ht.GetValue(nullptr, 20, &res);
-//    EXPECT_EQ(0, res.size());
-
     // delete some values
     for (int i = 0; i < 1000; i++) {
       std::vector<int> res;
@@ -114,7 +109,7 @@ namespace bustub {
     delete bpm;
   }
 
-  TEST(HashTableTest, DISABLED_ResizeTest) {
+  TEST(HashTableTest, ResizeTest) {
     auto *disk_manager = new DiskManager("test.db");
     auto *bpm = new BufferPoolManager(50, disk_manager);
 
@@ -134,8 +129,6 @@ namespace bustub {
     remove("test.db");
     delete disk_manager;
     delete bpm;
-
-
   }
 
 }  // namespace bustub

@@ -336,10 +336,10 @@ namespace bustub {
             // only hold one new block page
             if (temp_p == INVALID_PAGE_ID ||
               bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
-              // TODO: no need to write back every page...
-              if (temp_p != INVALID_PAGE_ID) {
-                buffer_pool_manager_->UnpinPage(temp_p, true);
-              }
+//              // TODO: no need to write back every page...
+//              if (temp_p != INVALID_PAGE_ID) {
+//                buffer_pool_manager_->UnpinPage(temp_p, true);
+//              }
               temp_p = bucket_id / BLOCK_ARRAY_SIZE;
               assert((size_t) temp_p < header_page->NumBlocks());
               new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
