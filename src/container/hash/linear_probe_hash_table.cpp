@@ -42,7 +42,7 @@ namespace bustub {
     header_page->SetSize(num_buckets_);
     header_page->SetPageId(header_page_id_);
     // block pages, need to add all buckets
-    for (int i = 0; i < (int) num_block_pages_; ++i) {
+    for (size_t i = 0; i < num_block_pages_; ++i) {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
       header_page->AddBlockPageId(temp_p);
       // need to unpin after allocation
@@ -370,7 +370,7 @@ namespace bustub {
       buffer_pool_manager_->UnpinPage(old_page_id, false);
       if (buffer_pool_manager_->DeletePage(old_page_id)) {
         LOG_DEBUG("Delete page: %d\n", (int) old_page_id);
-      };
+      }
 //      LOG_DEBUG("Finished block: %d\n", i);
     }
     // cleanup: delete old header and reset
@@ -381,7 +381,7 @@ namespace bustub {
     buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false);
     if (buffer_pool_manager_->DeletePage(prev_header_page->GetPageId())) {
       LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
-    };
+    }
     for (int j = 0; j < new_num_blocks; ++j) {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
