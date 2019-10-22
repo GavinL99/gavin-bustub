@@ -294,7 +294,7 @@ namespace bustub {
 // update header meta data at the very end
   template<typename KeyType, typename ValueType, typename KeyComparator>
   void HASH_TABLE_TYPE::Resize(size_t initial_size) {
-    page_id_t allocate_temp_p, temp_p, new_header_page, old_page_id;
+    page_id_t allocate_temp_p, new_header_page, old_page_id;
     uint64_t bucket_id(0);
     // for moving contents
     BLOCK_PAGE_TYPE *block_page(nullptr), *new_block_page(nullptr);
