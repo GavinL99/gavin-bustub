@@ -206,8 +206,8 @@ namespace bustub {
       }
     }
     // unpin page_id is handled above
-    LOG_DEBUG("Unpin page..\n");
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    LOG_DEBUG("Unpin page..\n");
     return insert_flag;
   }
 
