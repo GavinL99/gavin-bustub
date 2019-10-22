@@ -341,11 +341,11 @@ namespace bustub {
           }
         }
       }
-      LOG_DEBUG("Clean up: %d\n", i);
       // if need to fetch a new content page
       // delete block page
       buffer_pool_manager_->UnpinPage(old_page_id, false);
       buffer_pool_manager_->DeletePage(old_page_id);
+      LOG_DEBUG("Clean up: %d\n", i);
     }
     // cleanup: delete old header and reset
     header_page_id_ = new_header_page;
