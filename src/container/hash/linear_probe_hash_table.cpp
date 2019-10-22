@@ -177,6 +177,7 @@ namespace bustub {
           buffer_pool_manager_->UnpinPage(page_id, true);
         }
         insert_flag = true;
+        LOG_DEBUG("Inserted: %d!\n", (int) offset);
         break;
       }
       // possible place to insert; if encounter the first tombstone
@@ -205,6 +206,7 @@ namespace bustub {
       }
     }
     // unpin page_id is handled above
+    LOG_DEBUG("Unpin page..\n");
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
     return insert_flag;
   }
