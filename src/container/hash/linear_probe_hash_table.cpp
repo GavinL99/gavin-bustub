@@ -74,10 +74,6 @@ namespace bustub {
     BLOCK_PAGE_TYPE *block_page(nullptr);
 
     while (true) {
-      // if wrapped around
-      if (bucket_id == start_id) {
-        break;
-      }
       // fetch block page
       if (switch_page) {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
@@ -100,6 +96,10 @@ namespace bustub {
       }
       // linear probe
       bucket_id = (bucket_id + 1) % num_buckets_;
+      // if wrapped around
+      if (bucket_id == start_id) {
+        break;
+      }
       // only switch if have more than 1 page
       if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
@@ -140,15 +140,6 @@ namespace bustub {
     BLOCK_PAGE_TYPE *block_page(nullptr), *insert_page(nullptr);
 
     while (true) {
-      // if wrapped around, need to resize
-      if (bucket_id == start_id) {
-        LOG_DEBUG("Insert Resize...\n");
-        Resize(num_buckets_);
-        bucket_id = hash_fn_.GetHash(key) % num_buckets_;
-        start_id = bucket_id;
-        page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
-        switch_page = true;
-      }
       // fetch block page
       if (switch_page) {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
@@ -197,7 +188,15 @@ namespace bustub {
       }
       // linear probe
       bucket_id = (bucket_id + 1) % num_buckets_;
-      if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
+      // if wrapped around, need to resize
+      if (bucket_id == start_id) {
+        LOG_DEBUG("Insert Resize...\n");
+        Resize(num_buckets_);
+        bucket_id = hash_fn_.GetHash(key) % num_buckets_;
+        start_id = bucket_id;
+        page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
+        switch_page = true;
+      } else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
@@ -235,11 +234,6 @@ namespace bustub {
     bool page_dirty_flag = false;
 
     while (true) {
-      // if wrapped around
-//      LOG_DEBUG("Remove Id: %d\n", (int) bucket_id);
-      if (bucket_id == start_id) {
-        break;
-      }
       // fetch block page
       if (switch_page) {
 //        LOG_DEBUG("Page Switched!\n");
@@ -267,6 +261,10 @@ namespace bustub {
       }
       // linear probe
       bucket_id = (bucket_id + 1) % num_buckets_;
+      // if wrapped around
+      if (bucket_id == start_id) {
+        break;
+      }
       if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // need to unpin page based on whether page is dirty
