@@ -318,6 +318,7 @@ namespace bustub {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
       header_page->AddBlockPageId(temp_p);
     }
+    temp_p = INVALID_PAGE_ID;
 
     // move content: need to do linear probing...
     slot_offset_t offset(0);
