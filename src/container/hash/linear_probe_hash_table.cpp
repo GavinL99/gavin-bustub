@@ -306,7 +306,7 @@ namespace bustub {
     }
     size_t new_size = new_num_blocks * BLOCK_ARRAY_SIZE;
 
-    new_header_page = allocate_temp_p = temp_p = INVALID_PAGE_ID;
+    new_header_page = allocate_temp_p = INVALID_PAGE_ID;
     auto prev_header_page = reinterpret_cast<HashTableHeaderPage *>(
         buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
     // allocate new pages
@@ -345,24 +345,13 @@ namespace bustub {
         bucket_id = hash_fn_.GetHash(k_t) % new_size;
 
         while (true) {
-          // if need to fetch new block page
-//          if (temp_p == INVALID_PAGE_ID ||
-//            bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
-//            temp_p = bucket_id / BLOCK_ARRAY_SIZE;
-//            assert((size_t) temp_p < header_page->NumBlocks());
-//            new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
-//                buffer_pool_manager_->FetchPage(
-//                    header_page->GetBlockPageId(temp_p))
-//            );
-//            LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
-//          }
           new_block_page = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
           offset = bucket_id % BLOCK_ARRAY_SIZE;
 //          LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
           if (!new_block_page->IsOccupied(offset)) {
             if (new_block_page->Insert(
                 offset, k_t, v_t)) {
-                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
+//                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
             }
             break;
           }
@@ -373,8 +362,10 @@ namespace bustub {
       // if need to fetch a new content page
       // delete block page
       buffer_pool_manager_->UnpinPage(old_page_id, false);
-      buffer_pool_manager_->DeletePage(old_page_id);
-      LOG_DEBUG("Finished block: %d\n", i);
+      if (buffer_pool_manager_->DeletePage(old_page_id)) {
+        LOG_DEBUG("Delete page: %d\n", (int) old_page_id);
+      };
+//      LOG_DEBUG("Finished block: %d\n", i);
     }
     // cleanup: delete old header and reset
 //    LOG_DEBUG("Reset headers...\n");
