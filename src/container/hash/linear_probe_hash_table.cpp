@@ -314,10 +314,17 @@ namespace bustub {
         buffer_pool_manager_->NewPage(&new_header_page)->GetData());
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
+
+    auto block_pages = new BLOCK_PAGE_TYPE*[new_num_blocks];
+
     for (int i = 0; i < (int) new_num_blocks; ++i) {
       buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr);
       header_page->AddBlockPageId(allocate_temp_p);
+      block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>(
+          buffer_pool_manager_->FetchPage(allocate_temp_p));
     }
+    KeyType k_t;
+    ValueType v_t;
 
     // move content: need to do linear probing...
     slot_offset_t offset(0);
@@ -331,24 +338,29 @@ namespace bustub {
         if (!block_page->IsReadable(j)) {
           continue;
         }
+        k_t = block_page->KeyAt(j);
+        v_t = block_page->ValueAt(j);
 //        LOG_DEBUG("Start Block: %d, %d\n", i, j);
         // where it should be in the new table
-        bucket_id = hash_fn_.GetHash(block_page->KeyAt(j)) % new_size;
+        bucket_id = hash_fn_.GetHash(k_t) % new_size;
+
         while (true) {
           // if need to fetch new block page
-          if (temp_p == INVALID_PAGE_ID || bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
-            temp_p = bucket_id / BLOCK_ARRAY_SIZE;
-            assert((size_t) temp_p < header_page->NumBlocks());
-            new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
-                buffer_pool_manager_->FetchPage(
-                    header_page->GetBlockPageId(temp_p))
-            );
-            LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
-          }
+//          if (temp_p == INVALID_PAGE_ID ||
+//            bucket_id / BLOCK_ARRAY_SIZE != (uint64_t) temp_p) {
+//            temp_p = bucket_id / BLOCK_ARRAY_SIZE;
+//            assert((size_t) temp_p < header_page->NumBlocks());
+//            new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(
+//                buffer_pool_manager_->FetchPage(
+//                    header_page->GetBlockPageId(temp_p))
+//            );
+//            LOG_DEBUG("Fetch new page: %d\n", (int) temp_p);
+//          }
+          new_block_page = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
           offset = bucket_id % BLOCK_ARRAY_SIZE;
           if (!new_block_page->IsOccupied(offset)) {
             if (new_block_page->Insert(
-                offset, block_page->KeyAt(j), block_page->ValueAt(j))) {
+                offset, k_t, v_t)) {
                   LOG_DEBUG("Block processed: %d, %d\n", i, j);
             }
             break;
@@ -374,6 +386,7 @@ namespace bustub {
       buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
     buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
+    free(block_pages);
   }
 
 /*****************************************************************************
