@@ -127,6 +127,7 @@ namespace bustub {
       ht.GetValue(nullptr, i, &res);
       EXPECT_EQ(1, res.size()) << "Failed to insert " << i << std::endl;
       EXPECT_EQ(i, res[0]);
+      LOG_DEBUG("Inserted %d\n", i);
     }
     LOG_DEBUG("SHUT DOWN\n");
     disk_manager->ShutDown();
