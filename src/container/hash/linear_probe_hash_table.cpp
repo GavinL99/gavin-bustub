@@ -431,9 +431,9 @@ namespace bustub {
 //      LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
     }
     for (size_t j = 0; j < new_num_blocks; ++j) {
-      buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), false);
+      buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
     }
-    buffer_pool_manager_->UnpinPage(header_page->GetPageId(), false);
+    buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
     delete[] block_pages;
   }
 
