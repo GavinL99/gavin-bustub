@@ -68,6 +68,7 @@ bool HASH_TABLE_BLOCK_TYPE::IsReadable(slot_offset_t bucket_ind)  const {
   unsigned int one = 0x01;
   size_t char_idx = bucket_ind / 8;
   size_t bit_idx = bucket_ind % 8;
+  assert(char_idx < ((BLOCK_ARRAY_SIZE - 1) / 8 + 1));
   return (readable_[char_idx] >> bit_idx) & one;
 }
 
