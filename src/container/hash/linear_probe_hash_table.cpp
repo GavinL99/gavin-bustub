@@ -389,11 +389,13 @@ namespace bustub {
           buffer_pool_manager_->FetchPage(old_page_id));
 //      LOG_DEBUG("Start Block: %d\n", (int) i);
       // linear probing again
+      LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
       for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
-        LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
         if (!block_page->IsReadable(j)) {
           continue;
         }
+        LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
+
         k_t = block_page->KeyAt(j);
         v_t = block_page->ValueAt(j);
 //        LOG_DEBUG("Start Block: %d, %d\n", i, j);
