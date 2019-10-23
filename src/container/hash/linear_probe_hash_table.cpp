@@ -42,8 +42,8 @@ namespace bustub {
     for (size_t i = 0; i < num_block_pages_; ++i) {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
       header_page->AddBlockPageId(temp_p);
-      // need to unpin after allocation
-      buffer_pool_manager_->UnpinPage(temp_p, false);
+      // need to unpin after allocation (flush here!)
+      buffer_pool_manager_->UnpinPage(temp_p, true);
     }
     buffer_pool_manager_->UnpinPage(header_page_id_, true);
   }
