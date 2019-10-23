@@ -46,7 +46,7 @@ namespace bustub {
 
     // insert one more value for each key
     for (int i = 0; i < 10000; i++) {
-      LOG_DEBUG("Insert: %d\n", i);
+//      LOG_DEBUG("Insert: %d\n", i);
       if (i == 0) {
         // duplicate values for the same key are not allowed
         EXPECT_FALSE(ht.Insert(nullptr, i, 2 * i));
@@ -94,7 +94,7 @@ namespace bustub {
     }
     // delete all values
     for (int i = 0; i < 10000; i++) {
-      LOG_DEBUG("Delete: %d\n", i);
+//      LOG_DEBUG("Delete: %d\n", i);
       if (i == 0) {
         // (0, 0) has been deleted
         EXPECT_FALSE(ht.Remove(nullptr, i, 2 * i));
