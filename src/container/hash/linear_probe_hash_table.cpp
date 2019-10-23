@@ -128,33 +128,40 @@ namespace bustub {
   bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const ValueType &value) {
     // need to traverse until the first vacant slot in case of duplicates
     // but insertion can be tombstones in the middle
-    Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (temp_page == nullptr) {
-      return false;
-    }
-    auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
+    table_latch_.RLock();
+    Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+    header_page_p->RLatch();
+    auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
     // where to start linear probing
     page_id_t page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
+
     // if need to read a new page or check the next page (or wrap around)
     bool switch_page = true;
     // if need to insert at some tombstones
     bool insert_flag = false;
-
     // for tombstones insertion
     page_id_t insert_page_id = INVALID_PAGE_ID;
     slot_offset_t offset(0);
     slot_offset_t insert_offset(0);
     BLOCK_PAGE_TYPE *block_page(nullptr);
     BLOCK_PAGE_TYPE *insert_page(nullptr);
+    Page* temp_page(nullptr);
+    Page* next_latch_page(nullptr);
+    Page* insert_latch_page(nullptr);
 
     while (true) {
       // fetch block page
       if (switch_page) {
-        temp_page = buffer_pool_manager_->FetchPage(page_id);
-        if (temp_page == nullptr) {
-          break;
+        if (temp_page != nullptr) {
+          next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+          next_latch_page->WLatch();
+          temp_page->WUnlatch();
+          temp_page = next_latch_page;
+        } else {
+          temp_page = buffer_pool_manager_->FetchPage(page_id);
+          temp_page->WLatch();
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
         switch_page = false;
@@ -170,21 +177,23 @@ namespace bustub {
         // if insert into tombstones
         if (insert_page_id != INVALID_PAGE_ID) {
           insert_page->Insert(insert_offset, key, value);
-          buffer_pool_manager_->UnpinPage(insert_page_id, true);
           // unpin current page on hold
           if (insert_page_id != page_id) {
-            buffer_pool_manager_->UnpinPage(page_id, false);
+            buffer_pool_manager_->UnpinPage(insert_page_id, true);
+            insert_latch_page->WUnlatch();
           }
         } else {
           //  if insert here
           block_page->Insert(offset, key, value);
-          buffer_pool_manager_->UnpinPage(page_id, true);
         }
+        buffer_pool_manager_->UnpinPage(page_id, false);
+        temp_page->WUnlatch();
         insert_flag = true;
         break;
       }
       // possible place to insert; if encounter the first tombstone
       if (!block_page->IsReadable(offset) && insert_page_id == INVALID_PAGE_ID) {
+        insert_latch_page = temp_page;
         insert_page_id = page_id;
         insert_page = block_page;
         insert_offset = offset;
@@ -194,8 +203,10 @@ namespace bustub {
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
         buffer_pool_manager_->UnpinPage(page_id, false);
+        temp_page->WUnlatch();
         if (insert_page_id != INVALID_PAGE_ID) {
           buffer_pool_manager_->UnpinPage(insert_page_id, false);
+          insert_latch_page->WUnlatch();
         }
 //        LOG_DEBUG("Duplicated!\n");
         break;
@@ -207,13 +218,22 @@ namespace bustub {
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
 //        LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
         // need to unpin things here before resize to precent mem leak
+        // unlock all latches
+        temp_page->WUnlatch();
+        header_page_p->RUnlatch();
+        table_latch_.RUnlock();
+        table_latch_.WLock();
         buffer_pool_manager_->UnpinPage(header_page_id_, false);
         buffer_pool_manager_->UnpinPage(page_id, false);
         Resize(num_buckets_);
+        table_latch_.WUnlock();
+        table_latch_.RLock();
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
         start_id = bucket_id;
+        header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+        header_page_p->RLatch();
         header_page = reinterpret_cast<HashTableHeaderPage *>(
-            buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
+            header_page_p->GetData());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
         switch_page = true;
       } else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
@@ -222,6 +242,7 @@ namespace bustub {
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
           buffer_pool_manager_->UnpinPage(page_id, false);
+          temp_page->WUnlatch();
         }
         assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
@@ -229,6 +250,8 @@ namespace bustub {
     }
     // unpin page_id is handled above
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    header_page_p->RUnlatch();
+    table_latch_.RUnlock();
 //    LOG_DEBUG("Unpin page..\n");
     return insert_flag;
   }
