@@ -390,6 +390,7 @@ namespace bustub {
 //      LOG_DEBUG("Start Block: %d\n", (int) i);
       // linear probing again
       for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
+        LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE));
         if (!block_page->IsReadable(j)) {
           continue;
         }
