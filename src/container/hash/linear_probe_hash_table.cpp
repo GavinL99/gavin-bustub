@@ -57,9 +57,6 @@ namespace bustub {
     // get the actual data
     table_latch_.RLock();
     Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (header_page_p == nullptr) {
-      return false;
-    }
     header_page_p->RLatch();
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
@@ -242,11 +239,10 @@ namespace bustub {
   template<typename KeyType, typename ValueType, typename KeyComparator>
   bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const ValueType &value) {
     table_latch_.RLock();
-    Page *temp_page = buffer_pool_manager_->FetchPage(header_page_id_);
-    if (temp_page == nullptr) {
-      return false;
-    }
-    auto header_page = reinterpret_cast<HashTableHeaderPage *>(temp_page->GetData());
+    Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+    header_page_p->RLatch();
+    auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
+
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
     // where to start linear probing
@@ -258,14 +254,21 @@ namespace bustub {
     BLOCK_PAGE_TYPE *block_page(nullptr);
     bool remove_flag = false;
     bool page_dirty_flag = false;
+    Page* temp_page(nullptr);
+    Page* next_latch_page(nullptr);
 
     while (true) {
       // fetch block page
       if (switch_page) {
 //        LOG_DEBUG("Page Switched!\n");
-        temp_page = buffer_pool_manager_->FetchPage(page_id);
-        if (temp_page == nullptr) {
-          break;
+        if (temp_page != nullptr) {
+          next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+          next_latch_page->WLatch();
+          temp_page->WUnlatch();
+          temp_page = next_latch_page;
+        } else {
+          temp_page = buffer_pool_manager_->FetchPage(page_id);
+          temp_page->WLatch();
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
         switch_page = false;
@@ -302,6 +305,8 @@ namespace bustub {
     }
     buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    temp_page->WUnlatch();
+    header_page_p->RUnlatch();
     table_latch_.RUnlock();
     return remove_flag;
   }
