@@ -36,6 +36,7 @@ namespace bustub {
     header_page_id_ = INVALID_PAGE_ID;
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
         &header_page_id_)->GetData());
+    buffer_pool_manager_->FlushPage(header_page_id_);
     header_page->SetSize(num_buckets_);
     header_page->SetPageId(header_page_id_);
     // block pages, need to add all buckets
@@ -43,9 +44,10 @@ namespace bustub {
       buffer_pool_manager_->NewPage(&temp_p, nullptr);
       header_page->AddBlockPageId(temp_p);
       // need to unpin after allocation (flush here!)
-      buffer_pool_manager_->UnpinPage(temp_p, true);
+      buffer_pool_manager_->UnpinPage(temp_p, false);
+      buffer_pool_manager_->FlushPage(temp_p);
     }
-    buffer_pool_manager_->UnpinPage(header_page_id_, true);
+    buffer_pool_manager_->UnpinPage(header_page_id_, false);
   }
 
 /*****************************************************************************
@@ -362,6 +364,7 @@ namespace bustub {
     // allocate new pages
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(
         buffer_pool_manager_->NewPage(&new_header_page)->GetData());
+    buffer_pool_manager_->FlushPage(new_header_page);
     header_page->SetSize(new_size);
     header_page->SetPageId(new_header_page);
 
@@ -372,6 +375,7 @@ namespace bustub {
       (buffer_pool_manager_->NewPage(&allocate_temp_p,
                                      nullptr));
       assert(block_pages[i] != nullptr);
+      buffer_pool_manager_->FlushPage(allocate_temp_p);
       header_page->AddBlockPageId(allocate_temp_p);
     }
     KeyType k_t;
@@ -427,9 +431,9 @@ namespace bustub {
 //      LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
     }
     for (size_t j = 0; j < new_num_blocks; ++j) {
-      buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
+      buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), false);
     }
-    buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
+    buffer_pool_manager_->UnpinPage(header_page->GetPageId(), false);
     delete[] block_pages;
   }
 
