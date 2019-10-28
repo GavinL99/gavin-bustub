@@ -151,6 +151,9 @@ namespace bustub {
     std::thread t2(insert_f, ht, 5000);
     std::thread t3(insert_f, ht, 10000);
     // insert a few values
+    t1.join();
+    t2.join();
+    t3.join();
 
     LOG_DEBUG("SHUT DOWN\n");
     disk_manager->ShutDown();
