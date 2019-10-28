@@ -12,7 +12,6 @@
 
 #include <thread>  // NOLINT
 #include <vector>
-
 #include "common/logger.h"
 #include "container/hash/linear_probe_hash_table.h"
 #include "gtest/gtest.h"
@@ -131,7 +130,7 @@ namespace bustub {
     delete bpm;
   }
 
-  void insert_f(LinearProbeHashTable<int, int, IntComparator>& ht, int start_i) {
+  void insert_f(LinearProbeHashTable<int, int, IntComparator>* ht, int start_i) {
     for (int i = start_i; i < 1000 + start_i; i++) {
       ht.Insert(nullptr, i, i);
       std::vector<int> res;
@@ -146,9 +145,9 @@ namespace bustub {
     auto *bpm = new BufferPoolManager(50, disk_manager);
 
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
-    std::thread t1(insert_f, ht, 0);
-    std::thread t2(insert_f, ht, 5000);
-    std::thread t3(insert_f, ht, 10000);
+    std::thread t1(insert_f, &ht, 0);
+    std::thread t2(insert_f, &ht, 5000);
+    std::thread t3(insert_f, &ht, 10000);
     // insert a few values
     t1.join();
     t2.join();
