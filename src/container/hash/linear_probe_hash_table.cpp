@@ -227,7 +227,9 @@ namespace bustub {
         table_latch_.WLock();
         assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
+        LOG_DEBUG("Start resizing: %d\n", (int) num_buckets_);
         Resize(num_buckets_);
+        LOG_DEBUG("Finished resizing: %d\n", (int) num_buckets_);
         table_latch_.WUnlock();
         table_latch_.RLock();
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
