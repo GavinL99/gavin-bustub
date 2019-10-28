@@ -221,7 +221,7 @@ namespace bustub {
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
         // need to unpin things here before resize to precent mem leak
         // unlock all latches
-        LOG_DEBUG("Resize locking...: %d\n", (int) num_buckets_);
+        LOG_DEBUG("Resize locking...\n");
         temp_page->WUnlatch();
         header_page_p->RUnlatch();
         table_latch_.RUnlock();
