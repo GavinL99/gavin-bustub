@@ -17,7 +17,6 @@
 #include "container/hash/linear_probe_hash_table.h"
 #include "gtest/gtest.h"
 #include "murmur3/MurmurHash3.h"
-#include <thread>
 
 namespace bustub {
 
