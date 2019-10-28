@@ -241,8 +241,9 @@ namespace bustub {
             header_page_p->GetData());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
         switch_page = true;
-      } else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
-        // if need to check a new page
+      }
+      else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
+        // no resize need, if need to check a new page
         switch_page = true;
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
