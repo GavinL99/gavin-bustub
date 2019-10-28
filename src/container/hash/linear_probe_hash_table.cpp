@@ -178,7 +178,7 @@ namespace bustub {
           (bucket_id == start_id && insert_page_id != INVALID_PAGE_ID)) {
         // if insert into tombstones
         if (insert_page_id != INVALID_PAGE_ID) {
-          insert_page->Insert(insert_offset, key, value);
+          assert(insert_page->Insert(insert_offset, key, value));
           // unpin current page on hold
           if (insert_page_id != page_id) {
             assert(buffer_pool_manager_->UnpinPage(insert_page_id, true));
@@ -186,7 +186,7 @@ namespace bustub {
           }
         } else {
           //  if insert here
-          block_page->Insert(offset, key, value);
+          assert(block_page->Insert(offset, key, value));
         }
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
         temp_page->WUnlatch();
@@ -409,10 +409,7 @@ namespace bustub {
           offset = bucket_id % BLOCK_ARRAY_SIZE;
 //          LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
           if (!new_block_page->IsOccupied(offset)) {
-            if (new_block_page->Insert(
-                offset, k_t, v_t)) {
-//                  LOG_DEBUG("Block processed: %d, %d\n", i, j);
-            }
+            assert(new_block_page->Insert(offset, k_t, v_t));
             break;
           }
           bucket_id = (bucket_id + 1) % new_size;
