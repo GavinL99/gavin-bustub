@@ -131,9 +131,11 @@ namespace bustub {
   }
 
   void insert_f(LinearProbeHashTable<int, int, IntComparator>* ht, int start_i) {
-    for (int i = start_i; i < 1000 + start_i; i++) {
+    for (int i = start_i; i < 4000 + start_i; i++) {
+      std::cout << "Insert: " << std::this_thread::get_id() << " " << i << "\n";
       ht->Insert(nullptr, i, i);
       std::vector<int> res;
+      std::cout << "Get: " << std::this_thread::get_id() << " " << i << "\n";
       ht->GetValue(nullptr, i, &res);
       EXPECT_EQ(1, res.size());
       EXPECT_EQ(i, res[0]);
