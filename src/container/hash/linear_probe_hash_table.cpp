@@ -156,6 +156,7 @@ namespace bustub {
     while (true) {
       // fetch block page
       if (switch_page) {
+        // crab latch
         if (temp_page != nullptr) {
           next_latch_page = buffer_pool_manager_->FetchPage(page_id);
           next_latch_page->WLatch();
@@ -218,9 +219,9 @@ namespace bustub {
       // if wrapped around, need to resize and reset local variables
       // edge case was handled above: wrap around but tombstones found
       if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
-//        LOG_DEBUG("Insert Resize: %d\n", (int) num_buckets_);
         // need to unpin things here before resize to precent mem leak
         // unlock all latches
+        LOG_DEBUG("Resize locking...: %d\n", (int) num_buckets_);
         temp_page->WUnlatch();
         header_page_p->RUnlatch();
         table_latch_.RUnlock();

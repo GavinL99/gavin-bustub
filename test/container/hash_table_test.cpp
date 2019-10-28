@@ -108,14 +108,14 @@ namespace bustub {
     delete bpm;
   }
 
-  TEST(HashTableTest, DISABLED_ResizeTest) {
+  TEST(HashTableTest, ResizeTest) {
     auto *disk_manager = new DiskManager("test.db");
     auto *bpm = new BufferPoolManager(50, disk_manager);
 
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
     // insert a few values
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 100000; i++) {
       ht.Insert(nullptr, i, i);
       std::vector<int> res;
       ht.GetValue(nullptr, i, &res);
