@@ -36,7 +36,6 @@ namespace bustub {
     header_page_id_ = INVALID_PAGE_ID;
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(
         &header_page_id_)->GetData());
-    buffer_pool_manager_->FlushPage(header_page_id_);
     header_page->SetSize(num_buckets_);
     header_page->SetPageId(header_page_id_);
     // block pages, need to add all buckets
@@ -48,6 +47,7 @@ namespace bustub {
       buffer_pool_manager_->FlushPage(temp_p);
     }
     buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    buffer_pool_manager_->FlushPage(header_page_id_);
   }
 
 /*****************************************************************************
@@ -111,12 +111,12 @@ namespace bustub {
       if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // need to unpin page
-        buffer_pool_manager_->UnpinPage(page_id, false);
+        assert(buffer_pool_manager_->UnpinPage(page_id, false));
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
-    buffer_pool_manager_->UnpinPage(page_id, false);
-    buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    assert(buffer_pool_manager_->UnpinPage(page_id, false));
+    assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
     temp_page->RUnlatch();
     header_page_p->RUnlatch();
     table_latch_.RUnlock();
@@ -181,14 +181,14 @@ namespace bustub {
           insert_page->Insert(insert_offset, key, value);
           // unpin current page on hold
           if (insert_page_id != page_id) {
-            buffer_pool_manager_->UnpinPage(insert_page_id, true);
+            assert(buffer_pool_manager_->UnpinPage(insert_page_id, true));
             insert_latch_page->WUnlatch();
           }
         } else {
           //  if insert here
           block_page->Insert(offset, key, value);
         }
-        buffer_pool_manager_->UnpinPage(page_id, false);
+        assert(buffer_pool_manager_->UnpinPage(page_id, false));
         temp_page->WUnlatch();
         insert_flag = true;
         break;
@@ -204,10 +204,10 @@ namespace bustub {
       if (block_page->IsReadable(offset) &&
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
-        buffer_pool_manager_->UnpinPage(page_id, false);
+        assert(buffer_pool_manager_->UnpinPage(page_id, false));
         temp_page->WUnlatch();
         if (insert_page_id != INVALID_PAGE_ID) {
-          buffer_pool_manager_->UnpinPage(insert_page_id, false);
+          assert(buffer_pool_manager_->UnpinPage(insert_page_id, false));
           insert_latch_page->WUnlatch();
         }
 //        LOG_DEBUG("Duplicated!\n");
@@ -225,8 +225,8 @@ namespace bustub {
         header_page_p->RUnlatch();
         table_latch_.RUnlock();
         table_latch_.WLock();
-        buffer_pool_manager_->UnpinPage(header_page_id_, false);
-        buffer_pool_manager_->UnpinPage(page_id, false);
+        assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
+        assert(buffer_pool_manager_->UnpinPage(page_id, false));
         Resize(num_buckets_);
         table_latch_.WUnlock();
         table_latch_.RLock();
@@ -243,7 +243,7 @@ namespace bustub {
         switch_page = true;
         // unpin page if no possible insertion
         if (page_id != insert_page_id) {
-          buffer_pool_manager_->UnpinPage(page_id, false);
+          assert(buffer_pool_manager_->UnpinPage(page_id, false));
           temp_page->WUnlatch();
         }
         assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
@@ -251,7 +251,7 @@ namespace bustub {
       }
     }
     // unpin page_id is handled above
-    buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
     header_page_p->RUnlatch();
     table_latch_.RUnlock();
 //    LOG_DEBUG("Unpin page..\n");
@@ -322,14 +322,14 @@ namespace bustub {
       if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // need to unpin page based on whether page is dirty
-        buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
+        assert(buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag));
         page_dirty_flag = false;
         assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
-    buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag);
-    buffer_pool_manager_->UnpinPage(header_page_id_, false);
+    assert(buffer_pool_manager_->UnpinPage(page_id, page_dirty_flag));
+    assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
     temp_page->WUnlatch();
     header_page_p->RUnlatch();
     table_latch_.RUnlock();
@@ -389,12 +389,12 @@ namespace bustub {
           buffer_pool_manager_->FetchPage(old_page_id));
 //      LOG_DEBUG("Start Block: %d\n", (int) i);
       // linear probing again
-      LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
+//      LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
       for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
         if (!block_page->IsReadable(j)) {
           continue;
         }
-        LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
+//        LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
 
         k_t = block_page->KeyAt(j);
         v_t = block_page->ValueAt(j);
@@ -418,25 +418,20 @@ namespace bustub {
       }
       // if need to fetch a new content page
       // delete block page
-      buffer_pool_manager_->UnpinPage(old_page_id, false);
-      if (buffer_pool_manager_->DeletePage(old_page_id)) {
-//        LOG_DEBUG("Delete page: %d\n", (int) old_page_id);
-      }
-//      LOG_DEBUG("Finished block: %d\n", i);
+      assert(buffer_pool_manager_->UnpinPage(old_page_id, false));
+      assert(buffer_pool_manager_->DeletePage(old_page_id));
     }
     // cleanup: delete old header and reset
 //    LOG_DEBUG("Reset headers...\n");
     header_page_id_ = new_header_page;
     num_buckets_ = new_size;
     num_block_pages_ = new_num_blocks;
-    buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false);
-    if (buffer_pool_manager_->DeletePage(prev_header_page->GetPageId())) {
-//      LOG_DEBUG("Delete old header: %d\n", (int) prev_header_page->GetPageId());
-    }
+    assert(buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false));
+    assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()));
     for (size_t j = 0; j < new_num_blocks; ++j) {
-      buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true);
+      assert(buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true));
     }
-    buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true);
+    assert(buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true));
     delete[] block_pages;
   }
 
