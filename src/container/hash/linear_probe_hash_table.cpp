@@ -130,8 +130,10 @@ namespace bustub {
   bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const ValueType &value) {
     // need to traverse until the first vacant slot in case of duplicates
     // but insertion can be tombstones in the middle
+    LOG_DEBUG("Acquire read lock...\n");
     table_latch_.RLock();
     Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+    LOG_DEBUG("Acquire header page lock...\n");
     header_page_p->RLatch();
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
