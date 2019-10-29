@@ -110,7 +110,7 @@ namespace bustub {
 
   TEST(HashTableTest, DISABLED_ResizeTest) {
     auto *disk_manager = new DiskManager("test.db");
-    auto *bpm = new BufferPoolManager(1000, disk_manager);
+    auto *bpm = new BufferPoolManager(50, disk_manager);
 
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
@@ -132,7 +132,7 @@ namespace bustub {
   }
 
   void insert_f(LinearProbeHashTable<int, int, IntComparator>* ht, int start_i) {
-    for (int i = start_i; i < 4000 + start_i; i++) {
+    for (int i = start_i; i < 3000 + start_i; i++) {
       //std::cout << "Insert: " << std::this_thread::get_id() << " " << i << "\n" << std::endl;
       LOG_DEBUG("Insert: %d\n", i);
       ht->Insert(nullptr, i, i);
