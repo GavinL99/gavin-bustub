@@ -83,8 +83,7 @@ namespace bustub {
     std::unordered_set<Page*> page_latch_set;
     table_latch_.RLock();
     Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
-//    header_page_p->RLatch();
-    lock_with_set(page_latch_set, header_page_p, true, false);
+    header_page_p->RLatch();
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
@@ -148,9 +147,9 @@ namespace bustub {
     assert(buffer_pool_manager_->UnpinPage(page_id, false));
     assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
 //    temp_page->RUnlatch();
-//    header_page_p->RUnlatch();
+    header_page_p->RUnlatch();
     lock_with_set(page_latch_set, temp_page, false, false);
-    lock_with_set(page_latch_set, header_page_p, false, false);
+//    lock_with_set(page_latch_set, header_page_p, false, false);
     assert(page_latch_set.empty());
     table_latch_.RUnlock();
     LOG_DEBUG("Finished Get..\n");
