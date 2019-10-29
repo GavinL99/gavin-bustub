@@ -112,6 +112,7 @@ namespace bustub {
         switch_page = true;
         // need to unpin page
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
+        temp_page->RUnlatch();
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
