@@ -164,11 +164,13 @@ namespace bustub {
 
     // need to traverse until the first vacant slot in case of duplicates
     // but insertion can be tombstones in the middle
+    std::unordered_set<Page*> page_latch_set;
     LOG_DEBUG("Acquire read lock...\n");
     table_latch_.RLock();
     Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
     LOG_DEBUG("Acquire header page lock...\n");
-    header_page_p->RLatch();
+//    header_page_p->RLatch();
+    lock_with_set(page_latch_set, header_page_p, true, false);
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
@@ -195,13 +197,16 @@ namespace bustub {
         // crab latch
         if (temp_page != nullptr) {
           next_latch_page = buffer_pool_manager_->FetchPage(page_id);
-          next_latch_page->WLatch();
-          temp_page->WUnlatch();
+//          next_latch_page->WLatch();
+//          temp_page->WUnlatch();
+          lock_with_set(page_latch_set, next_latch_page, true, true);
+          lock_with_set(page_latch_set, temp_page, false, true);
           temp_page = next_latch_page;
         } else {
           LOG_DEBUG("Fetch first block page... %d\n", (int) page_id);
           temp_page = buffer_pool_manager_->FetchPage(page_id);
-          temp_page->WLatch();
+//          temp_page->WLatch();
+          lock_with_set(page_latch_set, temp_page, true, true);
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
         switch_page = false;
@@ -220,7 +225,8 @@ namespace bustub {
           // unpin current page on hold
           if (insert_page_id != page_id) {
             assert(buffer_pool_manager_->UnpinPage(insert_page_id, true));
-            insert_latch_page->WUnlatch();
+//            insert_latch_page->WUnlatch();
+            lock_with_set(page_latch_set, insert_latch_page, false, true);
             assert(buffer_pool_manager_->UnpinPage(page_id, false));
           }
         } else {
@@ -229,7 +235,8 @@ namespace bustub {
           assert(block_page->Insert(offset, key, value));
           assert(buffer_pool_manager_->UnpinPage(page_id, true));
         }
-        temp_page->WUnlatch();
+//        temp_page->WUnlatch();
+        lock_with_set(page_latch_set, temp_page, false, true);
         insert_flag = true;
         break;
       }
@@ -246,10 +253,12 @@ namespace bustub {
           comparator_(block_page->KeyAt(offset), key) == 0 &&
           block_page->ValueAt(offset) == value) {
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
-        temp_page->WUnlatch();
+//        temp_page->WUnlatch();
+        lock_with_set(page_latch_set, temp_page, false, true);
         if (insert_page_id != INVALID_PAGE_ID && insert_page_id != page_id) {
           assert(buffer_pool_manager_->UnpinPage(insert_page_id, false));
-          insert_latch_page->WUnlatch();
+//          insert_latch_page->WUnlatch();
+          lock_with_set(page_latch_set, insert_latch_page, false, true);
         }
         LOG_DEBUG("Duplicated!\n");
         break;
@@ -264,9 +273,12 @@ namespace bustub {
         LOG_DEBUG("Resize Unlocking...\n");
         assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
-        header_page_p->RUnlatch();
-        temp_page->WUnlatch();
+//        header_page_p->RUnlatch();
+//        temp_page->WUnlatch();
+        lock_with_set(page_latch_set, header_page_p, false, false);
+        lock_with_set(page_latch_set, temp_page, false, true);
         table_latch_.RUnlock();
+
         LOG_DEBUG("Resize locking...\n");
         table_latch_.WLock();
         LOG_DEBUG("Start resizing: %d\n", (int) num_buckets_);
@@ -277,7 +289,8 @@ namespace bustub {
         bucket_id = hash_fn_.GetHash(key) % num_buckets_;
         start_id = bucket_id;
         header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
-        header_page_p->RLatch();
+//        header_page_p->RLatch();
+        lock_with_set(page_latch_set, header_page_p, true, false);
         header_page = reinterpret_cast<HashTableHeaderPage *>(
             header_page_p->GetData());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
@@ -298,7 +311,8 @@ namespace bustub {
     }
     // unpin page_id is handled above
     assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
-    header_page_p->RUnlatch();
+//    header_page_p->RUnlatch();
+    lock_with_set(page_latch_set, header_page_p, false, false);
     table_latch_.RUnlock();
     LOG_DEBUG("Finished Insert.. \n");
     return insert_flag;
