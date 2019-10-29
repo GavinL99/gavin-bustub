@@ -18,9 +18,32 @@
 #include "common/rid.h"
 #include "container/hash/linear_probe_hash_table.h"
 #include "cassert"
+#include <unordered_set>
 
 namespace bustub {
 #define MAX_NUM_BLOCK_PAGES 1020
+
+  void lock_with_set(std::unordered_set<Page*> page_set, Page* ptr, bool if_lock, bool if_write) {
+    if (if_lock) {
+      if (page_set.find(ptr) == page_set.end()) {
+        page_set.insert(ptr);
+        if (if_write) {
+          ptr->WLatch();
+        } else {
+          ptr->RLatch();
+        }
+      }
+    } else {
+      if (page_set.find(ptr) != page_set.end()) {
+        page_set.erase(ptr);
+        if (if_write) {
+          ptr->WUnlatch();
+        } else {
+          ptr->RUnlatch();
+        }
+      }
+    }
+  }
 
   template<typename KeyType, typename ValueType, typename KeyComparator>
   HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager *buffer_pool_manager,
@@ -57,9 +80,11 @@ namespace bustub {
   bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std::vector<ValueType> *result) {
     // hash f -> page_id -> block page -> linear probe -> stop till not occupied
     // get the actual data
+    std::unordered_set<Page*> page_latch_set;
     table_latch_.RLock();
     Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
-    header_page_p->RLatch();
+//    header_page_p->RLatch();
+    lock_with_set(page_latch_set, header_page_p, true, false);
     auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
     uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
     uint64_t start_id = bucket_id;
@@ -80,12 +105,16 @@ namespace bustub {
         // if need to latch the next page
         if (temp_page != nullptr) {
           next_latch_page = buffer_pool_manager_->FetchPage(page_id);
-          next_latch_page->RLatch();
-          temp_page->RUnlatch();
+//          next_latch_page->RLatch();
+//          temp_page->RUnlatch();
+          lock_with_set(page_latch_set, next_latch_page, true, false);
+          lock_with_set(page_latch_set, temp_page, false, false);
+
           temp_page = next_latch_page;
         } else {
           temp_page = buffer_pool_manager_->FetchPage(page_id);
-          temp_page->RLatch();
+//          temp_page->RLatch();
+          lock_with_set(page_latch_set, temp_page, true, false);
         }
         block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
         switch_page = false;
@@ -118,8 +147,11 @@ namespace bustub {
     }
     assert(buffer_pool_manager_->UnpinPage(page_id, false));
     assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
-    temp_page->RUnlatch();
-    header_page_p->RUnlatch();
+//    temp_page->RUnlatch();
+//    header_page_p->RUnlatch();
+    lock_with_set(page_latch_set, temp_page, false, false);
+    lock_with_set(page_latch_set, header_page_p, false, false);
+    assert(page_latch_set.empty());
     table_latch_.RUnlock();
     LOG_DEBUG("Finished Get..\n");
     return !result->empty();
@@ -130,6 +162,7 @@ namespace bustub {
  *****************************************************************************/
   template<typename KeyType, typename ValueType, typename KeyComparator>
   bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const ValueType &value) {
+
     // need to traverse until the first vacant slot in case of duplicates
     // but insertion can be tombstones in the middle
     LOG_DEBUG("Acquire read lock...\n");
