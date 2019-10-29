@@ -166,7 +166,7 @@ namespace bustub {
           temp_page->WUnlatch();
           temp_page = next_latch_page;
         } else {
-          LOG_DEBUG("Fetch first block page...\n");
+          LOG_DEBUG("Fetch first block page... %d\n", (int) page_id);
           temp_page = buffer_pool_manager_->FetchPage(page_id);
           temp_page->WLatch();
         }
