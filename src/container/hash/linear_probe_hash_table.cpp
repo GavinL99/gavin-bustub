@@ -121,6 +121,7 @@ namespace bustub {
     temp_page->RUnlatch();
     header_page_p->RUnlatch();
     table_latch_.RUnlock();
+    LOG_DEBUG("Finished Get..\n");
     return !result->empty();
   }
 
@@ -267,7 +268,7 @@ namespace bustub {
     assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
     header_page_p->RUnlatch();
     table_latch_.RUnlock();
-//    LOG_DEBUG("Unpin page..\n");
+    LOG_DEBUG("Finished Insert..\n");
     return insert_flag;
   }
 

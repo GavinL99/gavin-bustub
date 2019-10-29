@@ -108,7 +108,7 @@ namespace bustub {
     delete bpm;
   }
 
-  TEST(HashTableTest, ResizeTest) {
+  TEST(HashTableTest, DISABLED_ResizeTest) {
     auto *disk_manager = new DiskManager("test.db");
     auto *bpm = new BufferPoolManager(50, disk_manager);
 
