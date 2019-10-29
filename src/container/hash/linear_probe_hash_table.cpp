@@ -225,10 +225,10 @@ namespace bustub {
         temp_page->WUnlatch();
         header_page_p->RUnlatch();
         table_latch_.RUnlock();
-        LOG_DEBUG("Resize locking...\n");
-        table_latch_.WLock();
         assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
+        LOG_DEBUG("Resize locking...\n");
+        table_latch_.WLock();
         LOG_DEBUG("Start resizing: %d\n", (int) num_buckets_);
         Resize(num_buckets_);
         LOG_DEBUG("Finished resizing: %d\n", (int) num_buckets_);
