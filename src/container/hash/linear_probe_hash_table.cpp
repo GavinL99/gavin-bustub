@@ -215,7 +215,7 @@ namespace bustub {
           block_page->ValueAt(offset) == value) {
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
         temp_page->WUnlatch();
-        if (insert_page_id != INVALID_PAGE_ID) {
+        if (insert_page_id != INVALID_PAGE_ID && insert_page_id != page_id) {
           assert(buffer_pool_manager_->UnpinPage(insert_page_id, false));
           insert_latch_page->WUnlatch();
         }
