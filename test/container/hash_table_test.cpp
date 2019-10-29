@@ -110,7 +110,7 @@ namespace bustub {
 
   TEST(HashTableTest, DISABLED_ResizeTest) {
     auto *disk_manager = new DiskManager("test.db");
-    auto *bpm = new BufferPoolManager(50, disk_manager);
+    auto *bpm = new BufferPoolManager(1000, disk_manager);
 
     LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
