@@ -229,11 +229,11 @@ namespace bustub {
         // need to unpin things here before resize to precent mem leak
         // unlock all latches
         LOG_DEBUG("Resize Unlocking...\n");
-        temp_page->WUnlatch();
-        header_page_p->RUnlatch();
-        table_latch_.RUnlock();
         assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
+        header_page_p->RUnlatch();
+        temp_page->WUnlatch();
+        table_latch_.RUnlock();
         LOG_DEBUG("Resize locking...\n");
         table_latch_.WLock();
         LOG_DEBUG("Start resizing: %d\n", (int) num_buckets_);
