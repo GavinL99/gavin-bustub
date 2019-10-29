@@ -163,6 +163,7 @@ namespace bustub {
           temp_page->WUnlatch();
           temp_page = next_latch_page;
         } else {
+          LOG_DEBUG("Fetch first block page...\n");
           temp_page = buffer_pool_manager_->FetchPage(page_id);
           temp_page->WLatch();
         }
@@ -178,6 +179,7 @@ namespace bustub {
           (bucket_id == start_id && insert_page_id != INVALID_PAGE_ID)) {
         // if insert into tombstones
         if (insert_page_id != INVALID_PAGE_ID) {
+          LOG_DEBUG("Insert tombstones...\n");
           assert(insert_page->Insert(insert_offset, key, value));
           // unpin current page on hold
           if (insert_page_id != page_id) {
@@ -186,6 +188,7 @@ namespace bustub {
             assert(buffer_pool_manager_->UnpinPage(page_id, false));
           }
         } else {
+          LOG_DEBUG("Insert vacant...\n");
           //  if insert here
           assert(block_page->Insert(offset, key, value));
           assert(buffer_pool_manager_->UnpinPage(page_id, true));
@@ -196,6 +199,7 @@ namespace bustub {
       }
       // possible place to insert; if encounter the first tombstone
       if (!block_page->IsReadable(offset) && insert_page_id == INVALID_PAGE_ID) {
+        LOG_DEBUG("Found tombstones...\n");
         insert_latch_page = temp_page;
         insert_page_id = page_id;
         insert_page = block_page;
@@ -211,7 +215,7 @@ namespace bustub {
           assert(buffer_pool_manager_->UnpinPage(insert_page_id, false));
           insert_latch_page->WUnlatch();
         }
-//        LOG_DEBUG("Duplicated!\n");
+        LOG_DEBUG("Duplicated!\n");
         break;
       }
       // linear probe
@@ -242,6 +246,7 @@ namespace bustub {
             header_page_p->GetData());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
         switch_page = true;
+        temp_page = nullptr;
       }
       else if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         // no resize need, if need to check a new page
