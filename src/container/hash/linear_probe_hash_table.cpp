@@ -111,8 +111,8 @@ namespace bustub {
       if (bucket_id % BLOCK_ARRAY_SIZE == 0 && num_block_pages_ > 1) {
         switch_page = true;
         // need to unpin page
+        // will unlatch at the start of loop
         assert(buffer_pool_manager_->UnpinPage(page_id, false));
-        temp_page->RUnlatch();
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
       }
     }
