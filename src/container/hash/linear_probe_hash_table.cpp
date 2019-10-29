@@ -256,9 +256,9 @@ namespace bustub {
         // no resize need, if need to check a new page
         switch_page = true;
         // unpin page if no possible insertion
+        // ulatch is handled above
         if (page_id != insert_page_id) {
           assert(buffer_pool_manager_->UnpinPage(page_id, false));
-          temp_page->WUnlatch();
         }
         assert((size_t) bucket_id / BLOCK_ARRAY_SIZE < header_page->NumBlocks());
         page_id = header_page->GetBlockPageId(bucket_id / BLOCK_ARRAY_SIZE);
@@ -268,7 +268,7 @@ namespace bustub {
     assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
     header_page_p->RUnlatch();
     table_latch_.RUnlock();
-    LOG_DEBUG("Finished Insert..\n");
+    LOG_DEBUG("Finished Insert.. \n");
     return insert_flag;
   }
 
