@@ -171,7 +171,6 @@ namespace bustub {
       }
       // block_page slot
       offset = bucket_id % BLOCK_ARRAY_SIZE;
-
       // Two cases of success:
       // if vacant or have checked all but no duplicates
       // and there's tombstone to insert
@@ -184,12 +183,13 @@ namespace bustub {
           if (insert_page_id != page_id) {
             assert(buffer_pool_manager_->UnpinPage(insert_page_id, true));
             insert_latch_page->WUnlatch();
+            assert(buffer_pool_manager_->UnpinPage(page_id, false));
           }
         } else {
           //  if insert here
           assert(block_page->Insert(offset, key, value));
+          assert(buffer_pool_manager_->UnpinPage(page_id, true));
         }
-        assert(buffer_pool_manager_->UnpinPage(page_id, false));
         temp_page->WUnlatch();
         insert_flag = true;
         break;
