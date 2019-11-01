@@ -181,6 +181,8 @@ TableIterator TableHeap::Begin(Transaction *txn) {
   return TableIterator(this, rid, txn);
 }
 
-TableIterator TableHeap::End() { return TableIterator(this, RID(INVALID_PAGE_ID, 0), nullptr); }
+TableIterator TableHeap::End() {
+  return TableIterator(this, RID(INVALID_PAGE_ID, 0), nullptr);
+}
 
 }  // namespace bustub
