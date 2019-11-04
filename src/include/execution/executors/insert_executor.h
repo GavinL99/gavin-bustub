@@ -19,6 +19,7 @@
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/insert_plan.h"
 #include "storage/table/tuple.h"
+#include <cassert>
 
 namespace bustub {
 /**
@@ -44,37 +45,38 @@ class InsertExecutor : public AbstractExecutor {
     is_raw_ = plan_->IsRawInsert();
     if (is_raw_) {
       max_len_ = plan_->RawValues().size();
-      iter_idx = 0;
+      iter_idx_ = 0;
     }
-    table_ptr_ = exec_ctx_->GetCatalog()->GetTable(
-        plan_->TableOid()
-        );
+  table_ptr_ = exec_ctx_->GetCatalog()->GetTable(
+      plan_->TableOid());
   }
 
   // Note that Insert does not make use of the tuple pointer being passed in.
   // We return false if the insert failed for any reason, and return true if all inserts succeeded.
   bool Next([[maybe_unused]] Tuple *tuple) override {
     // rid is a useless variable
-    RID *rid = &RID();
+    RID t_rid;
+    RID *rid = &t_rid;
     bool output = false;
     // use a temp pointer instead of tuple in case that tuple == nullptr
-    Tuple *temp_tuple;
+    Tuple t_tuple;
+    Tuple *temp_tuple = &t_tuple;
 
     if (!is_raw_) {
-      if (child_exec_->Next(temp_tuple)) {
+      while (child_exec_->Next(temp_tuple)) {
         // possible that the table is full
         if (table_ptr_->table_->InsertTuple(*temp_tuple, rid, exec_ctx_->GetTransaction())) {
           output = true;
+          break;
         }
       }
     } else {
-      if (iter_idx_ < max_len_) {
+      while (iter_idx_ < max_len_) {
         if (table_ptr_->table_->InsertTuple(
-            Tuple(plan_->RawValuesAt(iter_idx_),
-                plan_->OutputSchema()), rid, exec_ctx_->GetTransaction())) {
+            Tuple(plan_->RawValuesAt(iter_idx_),plan_->OutputSchema()), rid, exec_ctx_->GetTransaction())) {
           output = true;
-          iter_idx_++;
         }
+        iter_idx_++;
       }
     }
     return output;

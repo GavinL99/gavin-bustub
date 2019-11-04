@@ -28,7 +28,7 @@ class ColumnValueExpression : public AbstractExpression {
    * ColumnValueExpression is an abstraction around "Table.member" in terms of indexes.
    * @param tuple_idx {tuple index 0 = left side of join, tuple index 1 = right side of join}
    * @param col_idx the index of the column in the schema
-   * @param ret_type the return type of the expression
+   * @param ret_type the return type of the expressionf
    */
   ColumnValueExpression(uint32_t tuple_idx, uint32_t col_idx, TypeId ret_type)
       : AbstractExpression({}, ret_type), tuple_idx_{tuple_idx}, col_idx_{col_idx} {}

@@ -169,9 +169,13 @@ class AggregationExecutor : public AbstractExecutor {
 
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); }
 
-  void Init() override {}
+  void Init() override {
 
-  bool Next(Tuple *tuple) override { return false; }
+  }
+
+  bool Next(Tuple *tuple) override {
+    return false;
+  }
 
   /** @return the tuple as an AggregateKey */
   AggregateKey MakeKey(const Tuple *tuple) {
@@ -197,7 +201,7 @@ class AggregationExecutor : public AbstractExecutor {
   /** The child executor whose tuples we are aggregating. */
   std::unique_ptr<AbstractExecutor> child_;
   /** Simple aggregation hash table. */
-  // Uncomment me! SimpleAggregationHashTable aht_;
+  SimpleAggregationHashTable aht_;
   /** Simple aggregation hash table iterator. */
   // Uncomment me! SimpleAggregationHashTable::Iterator aht_iterator_;
 };
