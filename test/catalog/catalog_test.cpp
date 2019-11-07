@@ -27,21 +27,36 @@ TEST(CatalogTest, CreateTableTest) {
   auto bpm = new BufferPoolManager(32, disk_manager);
   auto catalog = new SimpleCatalog(bpm, nullptr, nullptr);
   std::string table_name = "potato";
+  std::string table_name_1 = "tomato";
+  TableMetadata *t1, *t2;
 
   // The table shouldn't exist in the catalog yet.
 //  EXPECT_THROW(catalog->GetTable(table_name), std::out_of_range);
 
   // Put the table into the catalog.
-  std::vector<Column> columns;
-  columns.emplace_back("A", TypeId::INTEGER);
-  columns.emplace_back("B", TypeId::BOOLEAN);
+  {
+    std::vector<Column> columns;
+    columns.emplace_back("A", TypeId::INTEGER);
+    columns.emplace_back("B", TypeId::BOOLEAN);
+    Schema schema(columns);
+    t1 = catalog->CreateTable(nullptr, table_name, schema);
+  }
 
-  Schema schema(columns);
-  auto *table_metadata = catalog->CreateTable(nullptr, table_name, schema);
-  (void)table_metadata;
+  {
+    std::vector<Column> columns;
+    columns.emplace_back("AA", TypeId::INTEGER);
+    columns.emplace_back("BB", TypeId::BOOLEAN);
+    Schema schema(columns);
+    t2 = catalog->CreateTable(nullptr, table_name_1, schema);
+  }
 
   // Notice that this test case doesn't check anything! :(
   // It is up to you to extend it
+
+  EXPECT_EQ(t1, catalog->GetTable(0));
+  EXPECT_EQ(t1, catalog->GetTable(table_name));
+  EXPECT_EQ(t2, catalog->GetTable(1));
+  EXPECT_EQ(t2, catalog->GetTable(table_name_1));
 
   delete catalog;
   delete bpm;
