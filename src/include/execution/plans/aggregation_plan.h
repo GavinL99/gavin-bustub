@@ -109,6 +109,7 @@ namespace std {
 
 /**
  * Implements std::hash on AggregateKey.
+ * So if group_by is Null, hash = 0 and only one key
  */
 template <>
 struct hash<bustub::AggregateKey> {

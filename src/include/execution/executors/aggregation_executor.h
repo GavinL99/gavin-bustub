@@ -34,7 +34,8 @@ class SimpleAggregationHashTable {
  public:
   /**
    * Create a new simplified aggregation hash table.
-   * @param agg_exprs the aggregation expressions
+   * @param agg_exprs the aggregation expressions: what cols will the agg_types operators be applied to
+   * which is NOT group_by (the aggregate key)!
    * @param agg_types the types of aggregations
    */
   SimpleAggregationHashTable(const std::vector<const AbstractExpression *> &agg_exprs,
@@ -157,23 +158,41 @@ class AggregationExecutor : public AbstractExecutor {
   /**
    * Creates a new aggregation executor.
    * @param exec_ctx the context that the aggregation should be performed in
-   * @param plan the aggregation plan node
-   * @param child the child executor
+   * @param plan the aggregation plan node: specifies which col(s)
+   * and what aggregations to apply (which only contains one node
+   * like a seq scan)
+   * @param child the child executor: like a seq scan
    */
   AggregationExecutor(ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
                       std::unique_ptr<AbstractExecutor> &&child)
-      : AbstractExecutor(exec_ctx) {}
+      : AbstractExecutor(exec_ctx), plan_(plan), child_(std::move(child)), aht_(plan_->GetAggregates(),
+          plan_->GetAggregateTypes()),
+          aht_iterator_(aht_.Begin()) {}
 
   /** Do not use or remove this function, otherwise you will get zero points. */
   const AbstractExecutor *GetChildExecutor() const { return child_.get(); }
 
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); }
 
+  // populate the simple hash agg table
+  // need to apply having predicate
   void Init() override {
-
+    aht_.GenerateInitialAggregateValue();
+    Tuple tuple;
+    Tuple *tuple_ptr = &tuple;
+    while (child_->Next(tuple_ptr)) {
+      if (plan_->GetHaving()->Evaluate(tuple_ptr, plan_->OutputSchema()).GetAs<bool>()) {
+        aht_.InsertCombine(MakeKey(tuple_ptr), MakeVal(tuple_ptr));
+      }
+    }
   }
 
   bool Next(Tuple *tuple) override {
+    if (aht_iterator_ != aht_.End()) {
+      *tuple = Tuple(aht_iterator_.Val().aggregates_, plan_->OutputSchema());
+      ++aht_iterator_;
+      return true;
+    }
     return false;
   }
 
@@ -203,6 +222,6 @@ class AggregationExecutor : public AbstractExecutor {
   /** Simple aggregation hash table. */
   SimpleAggregationHashTable aht_;
   /** Simple aggregation hash table iterator. */
-  // Uncomment me! SimpleAggregationHashTable::Iterator aht_iterator_;
+  SimpleAggregationHashTable::Iterator aht_iterator_;
 };
 }  // namespace bustub

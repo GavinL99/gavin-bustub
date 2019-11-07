@@ -343,6 +343,7 @@ TEST_F(ExecutorTest, DISABLED_SimpleAggregationTest) {
   auto executor = ExecutorFactory::CreateExecutor(GetExecutorContext(), agg_plan.get());
   executor->Init();
   Tuple tuple;
+  // Only one tuple to return in this case, since group_by is Null
   ASSERT_TRUE(executor->Next(&tuple));
   auto countA_val = tuple.GetValue(agg_schema, agg_schema->GetColIdx("countA")).GetAs<int32_t>();
   auto sumA_val = tuple.GetValue(agg_schema, agg_schema->GetColIdx("sumA")).GetAs<int32_t>();
