@@ -34,21 +34,16 @@ TEST(CatalogTest, CreateTableTest) {
 //  EXPECT_THROW(catalog->GetTable(table_name), std::out_of_range);
 
   // Put the table into the catalog.
-  {
-    std::vector<Column> columns;
-    columns.emplace_back("A", TypeId::INTEGER);
-    columns.emplace_back("B", TypeId::BOOLEAN);
-    Schema schema(columns);
-    t1 = catalog->CreateTable(nullptr, table_name, schema);
-  }
+  std::vector<Column> columns;
+  columns.emplace_back("A", TypeId::INTEGER);
+  columns.emplace_back("B", TypeId::BOOLEAN);
+  Schema schema(columns);
+  t1 = catalog->CreateTable(nullptr, table_name, schema);
 
-  {
-    std::vector<Column> columns;
-    columns.emplace_back("AA", TypeId::INTEGER);
-    columns.emplace_back("BB", TypeId::BOOLEAN);
-    Schema schema(columns);
-    t2 = catalog->CreateTable(nullptr, table_name_1, schema);
-  }
+  columns.emplace_back("AA", TypeId::INTEGER);
+  columns.emplace_back("BB", TypeId::BOOLEAN);
+  Schema schema1(columns);
+  t2 = catalog->CreateTable(nullptr, table_name_1, schema1);
 
   // Notice that this test case doesn't check anything! :(
   // It is up to you to extend it
