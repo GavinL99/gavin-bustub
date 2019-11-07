@@ -65,7 +65,7 @@ class SimpleCatalog {
   /** @return table metadata by name */
   TableMetadata *GetTable(const std::string &table_name) {
     if (names_.find(table_name) != names_.end()) {
-      return tables_[names_[table_name]];
+      return tables_[names_[table_name]].get();
     }
     return nullptr;
   }
@@ -73,7 +73,7 @@ class SimpleCatalog {
   /** @return table metadata by oid */
   TableMetadata *GetTable(table_oid_t table_oid) {
     if (tables_.find(table_oid) != tables_.end()) {
-      return tables_[table_oid];
+      return tables_[table_oid].get();
     }
     return nullptr;
   }
