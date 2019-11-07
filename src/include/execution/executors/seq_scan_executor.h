@@ -35,19 +35,20 @@ class SeqScanExecutor : public AbstractExecutor {
   table_ptr_(exec_ctx->GetCatalog()->GetTable(plan_->GetTableOid())),
   iter_(table_ptr_->table_->Begin(exec_ctx->GetTransaction())),
   iter_end_(table_ptr_->table_->End()) {
+  }
+
+  void Init() override {
     schema_ = plan_->OutputSchema();
     predicate_ = plan_->GetPredicate();
   }
 
-  void Init() override {
-  }
-
   bool Next(Tuple *tuple) override {
-    while (iter_ != iter_end_ ||
-      !predicate_->Evaluate(&(*iter_), schema_).GetAs<bool>()) {
+    while (iter_ != iter_end_) {
       // have to use assignment operator of the dummy Tuple!
       *tuple = *(iter_++);
-      return true;
+      if (predicate_->Evaluate(tuple, schema_).GetAs<bool>()) {
+        return true;
+      }
     }
     return false;
   }
@@ -62,7 +63,6 @@ class SeqScanExecutor : public AbstractExecutor {
   TableIterator iter_end_;
   const AbstractExpression *predicate_;
   const Schema *schema_;
-
 
 };
 }  // namespace bustub
