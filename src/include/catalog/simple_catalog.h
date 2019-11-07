@@ -57,7 +57,7 @@ class SimpleCatalog {
     auto table = std::make_unique<TableHeap>(bpm_, lock_manager_, log_manager_, txn);
     auto output = std::make_unique<TableMetadata>(schema, table_name, std::move(table), next_table_oid_);
     table_oid_t t_id = next_table_oid_++;
-    tables_.insert({t_id, output});
+    tables_.insert(std::make_pair(t_id, output));
     names_.insert({table_name, t_id});
     return output.get();
   }
