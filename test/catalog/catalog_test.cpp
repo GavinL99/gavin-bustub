@@ -47,7 +47,6 @@ TEST(CatalogTest, CreateTableTest) {
 
   // Notice that this test case doesn't check anything! :(
   // It is up to you to extend it
-
   EXPECT_EQ(t1, catalog->GetTable(0));
   EXPECT_EQ(t1, catalog->GetTable(table_name));
   EXPECT_EQ(t2, catalog->GetTable(1));
