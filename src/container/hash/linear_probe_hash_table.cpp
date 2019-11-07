@@ -49,7 +49,7 @@ namespace bustub {
   HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager *buffer_pool_manager,
                                         const KeyComparator &comparator, size_t num_buckets,
                                         HashFunction<KeyType> hash_fn)
-      : buffer  _pool_manager_(buffer_pool_manager), comparator_(comparator), hash_fn_(std::move(hash_fn)) {
+      : buffer_pool_manager_(buffer_pool_manager), comparator_(comparator), hash_fn_(std::move(hash_fn)) {
     // allocate memory for header / block pages based on num_buckets, assume always success
     page_id_t temp_p = INVALID_PAGE_ID;
     num_block_pages_ =  (num_buckets + BLOCK_ARRAY_SIZE - 1) / BLOCK_ARRAY_SIZE;
