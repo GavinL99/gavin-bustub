@@ -116,6 +116,7 @@ class HashJoinExecutor : public AbstractExecutor {
   void Init() override {
     left_->Init();
     right_->Init();
+    predicate_ = plan_->Predicate();
     l_schema_ = left_->GetOutputSchema();
     r_schema_ = right_->GetOutputSchema();
     // build hash table using left table
@@ -152,7 +153,8 @@ class HashJoinExecutor : public AbstractExecutor {
           // need to further check predicate
           // merge tuples for two sides, assume concat right to left
           for (const Tuple& t: *temp_v) {
-            if (plan_->Predicate()->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
+            if (!predicate_ || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
+              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
               for (uint32_t i = 0; i < t.GetLength(); ++i) {
                 temp_merged_v.push_back(t.GetValue(l_schema_, i));
@@ -225,6 +227,8 @@ class HashJoinExecutor : public AbstractExecutor {
   static constexpr uint32_t jht_num_buckets_ = 2;
   std::unique_ptr<AbstractExecutor> left_, right_;
   const Schema *l_schema_, *r_schema_;
+  const AbstractExpression *predicate_;
+
 
 };
 }  // namespace bustub
