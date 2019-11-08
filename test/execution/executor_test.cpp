@@ -260,7 +260,7 @@ TEST_F(ExecutorTest, SimpleHashJoinTest) {
   std::unique_ptr<AbstractPlanNode> scan_plan1;
   const Schema *out_schema1;
   {
-    auto table_info = GetExecutorContext()->GetCatalog()->GetTable("test_3");
+    auto table_info = GetExecutorContext()->GetCatalog()->GetTable("test_2");
     auto &schema = table_info->schema_;
     auto colA = MakeColumnValueExpression(schema, 0, "colA");
     auto colB = MakeColumnValueExpression(schema, 0, "colB");
