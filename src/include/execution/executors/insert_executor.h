@@ -69,8 +69,9 @@ class InsertExecutor : public AbstractExecutor {
       }
     } else {
        for (const auto& t: plan_->RawValues()) {
+         // have to get the schema from the table!
         if (!table_ptr_->table_->InsertTuple(
-            Tuple(t, plan_->OutputSchema()), rid, exec_ctx_->GetTransaction())) {
+            Tuple(t, &(table_ptr_->schema_)), rid, exec_ctx_->GetTransaction())) {
           output = false;
           break;
         }

@@ -31,6 +31,7 @@ class InsertPlanNode : public AbstractPlanNode {
    * Creates a new insert plan node for inserting raw values.
    * @param raw_values the raw values to be inserted
    * @param table_oid the identifier of the table to be inserted into
+   * In the raw insert case, Schema is NULL
    */
   InsertPlanNode(std::vector<std::vector<Value>> &&raw_values, table_oid_t table_oid)
       : AbstractPlanNode(nullptr, {}), raw_values_(std::move(raw_values)), table_oid_(table_oid) {}

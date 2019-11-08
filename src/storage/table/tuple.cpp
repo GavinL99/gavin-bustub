@@ -82,7 +82,6 @@ Tuple &Tuple::operator=(const Tuple &other) {
     // Shallow copy.
     data_ = other.data_;
   }
-
   return *this;
 }
 
