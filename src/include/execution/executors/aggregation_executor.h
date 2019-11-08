@@ -188,8 +188,9 @@ class AggregationExecutor : public AbstractExecutor {
       // comparison operator to get bool
       AggregateKey t_key = MakeKey(tuple_ptr);
       AggregateValue t_value = MakeVal(tuple_ptr);
-      if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(
-          t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
+      if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
+        LOG_DEBUG("Key: %d, V: %d\n", (int) t_key.group_bys_.size(),
+                  (int) t_value.aggregates_.size());
         aht_.InsertCombine(t_key, t_value);
       }
     }
