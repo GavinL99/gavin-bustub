@@ -57,10 +57,9 @@ class InsertExecutor : public AbstractExecutor {
     bool output = true;
     // use a temp pointer instead of tuple in case that tuple == nullptr
     Tuple t_tuple;
-    Tuple *temp_tuple = &t_tuple;
 
     if (!is_raw_) {
-      while (child_exec_->Next(temp_tuple)) {
+      while (child_exec_->Next(&t_tuple)) {
         // possible that the table is full
         if (!table_ptr_->table_->InsertTuple(*temp_tuple, rid, exec_ctx_->GetTransaction())) {
           output = false;
