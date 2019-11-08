@@ -186,6 +186,7 @@ class AggregationExecutor : public AbstractExecutor {
         aht_.InsertCombine(MakeKey(tuple_ptr), MakeVal(tuple_ptr));
       }
     }
+    aht_iterator_ = aht_.Begin();
   }
 
   bool Next(Tuple *tuple) override {
