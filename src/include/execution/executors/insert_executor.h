@@ -85,7 +85,6 @@ class InsertExecutor : public AbstractExecutor {
  private:
   /** The insert plan node to be executed. */
   const InsertPlanNode *plan_;
-
   bool is_raw_;
   uint32_t max_len_;
   uint32_t iter_idx_;
