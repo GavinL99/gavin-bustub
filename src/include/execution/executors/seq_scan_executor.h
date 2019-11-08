@@ -48,7 +48,7 @@ class SeqScanExecutor : public AbstractExecutor {
 //      *tuple = *(iter_++);
       *tuple = *iter_;
       ++iter_;
-      if (predicate_ && predicate_->Evaluate(tuple, schema_).GetAs<bool>()) {
+      if (!predicate_ || (predicate_ && predicate_->Evaluate(tuple, schema_).GetAs<bool>())) {
         return true;
       }
     }
