@@ -43,21 +43,18 @@ class InsertExecutor : public AbstractExecutor {
 
   void Init() override {
     is_raw_ = plan_->IsRawInsert();
-    if (is_raw_) {
-      max_len_ = plan_->RawValues().size();
-      iter_idx_ = 0;
-    }
-  table_ptr_ = exec_ctx_->GetCatalog()->GetTable(
+    table_ptr_ = exec_ctx_->GetCatalog()->GetTable(
       plan_->TableOid());
   }
 
   // Note that Insert does not make use of the tuple pointer being passed in.
   // We return false if the insert failed for any reason, and return true if all inserts succeeded.
+  // Insert the WHOLE batch!
   bool Next([[maybe_unused]] Tuple *tuple) override {
     // rid is a useless variable
     RID t_rid;
     RID *rid = &t_rid;
-    bool output = false;
+    bool output = true;
     // use a temp pointer instead of tuple in case that tuple == nullptr
     Tuple t_tuple;
     Tuple *temp_tuple = &t_tuple;
@@ -65,18 +62,18 @@ class InsertExecutor : public AbstractExecutor {
     if (!is_raw_) {
       while (child_exec_->Next(temp_tuple)) {
         // possible that the table is full
-        if (table_ptr_->table_->InsertTuple(*temp_tuple, rid, exec_ctx_->GetTransaction())) {
-          output = true;
+        if (!table_ptr_->table_->InsertTuple(*temp_tuple, rid, exec_ctx_->GetTransaction())) {
+          output = false;
           break;
         }
       }
     } else {
-      while (iter_idx_ < max_len_) {
-        if (table_ptr_->table_->InsertTuple(
-            Tuple(plan_->RawValuesAt(iter_idx_),plan_->OutputSchema()), rid, exec_ctx_->GetTransaction())) {
-          output = true;
+       for (const auto& t: plan_->RawValues()) {
+        if (!table_ptr_->table_->InsertTuple(
+            Tuple(t, plan_->OutputSchema()), rid, exec_ctx_->GetTransaction())) {
+          output = false;
+          break;
         }
-        iter_idx_++;
       }
     }
     return output;
@@ -86,8 +83,6 @@ class InsertExecutor : public AbstractExecutor {
   /** The insert plan node to be executed. */
   const InsertPlanNode *plan_;
   bool is_raw_;
-  uint32_t max_len_;
-  uint32_t iter_idx_;
   std::unique_ptr<AbstractExecutor> child_exec_;
   TableMetadata *table_ptr_;
 
