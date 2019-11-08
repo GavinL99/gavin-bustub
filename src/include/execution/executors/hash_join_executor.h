@@ -114,6 +114,8 @@ class HashJoinExecutor : public AbstractExecutor {
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); }
 
   void Init() override {
+    left_->Init();
+    right_->Init();
     l_schema_ = left_->GetOutputSchema();
     r_schema_ = right_->GetOutputSchema();
     // build hash table using left table
