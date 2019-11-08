@@ -153,7 +153,7 @@ class HashJoinExecutor : public AbstractExecutor {
           // merge tuples for two sides, assume concat right to left
           for (const Tuple& t: temp_v) {
             if (!predicate_ || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
-              LOG_DEBUG("Start merging...\n");
+//              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
               // add by left schema
               for (uint32_t i = 0; i < l_schema_->GetColumnCount(); ++i) {
@@ -165,7 +165,7 @@ class HashJoinExecutor : public AbstractExecutor {
               merged_tuple_vec_.emplace_back(
                   Tuple(temp_merged_v, plan_->OutputSchema())
                   );
-              LOG_DEBUG("Finished merging...\n");
+//              LOG_DEBUG("Finished merging...\n");
             }
           }
           // if have matched something
