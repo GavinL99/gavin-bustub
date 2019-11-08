@@ -137,7 +137,6 @@ class HashJoinExecutor : public AbstractExecutor {
     // static variable that contains (one right tuple, all matched left tuples)
     static std::vector<Tuple> merged_tuple_vec_;
     static int merged_idx_ = -1;
-    std::vector<Tuple> *temp_v;
     Tuple t_tuple;
     Tuple *r_tuple = &t_tuple;
 
@@ -147,12 +146,12 @@ class HashJoinExecutor : public AbstractExecutor {
         hash_t r_hash_v = HashValues(r_tuple, r_schema_, plan_->GetRightKeys());
         // need to check all left tuples hashed to the same bucket
         if (jht_.CheckKey(exec_ctx_->GetTransaction(), r_hash_v)) {
-          temp_v = nullptr;
+          std::vector<Tuple> temp_v;
           // get all left tuples
-          jht_.GetValue(exec_ctx_->GetTransaction(), r_hash_v, temp_v);
+          jht_.GetValue(exec_ctx_->GetTransaction(), r_hash_v, &temp_v);
           // need to further check predicate
           // merge tuples for two sides, assume concat right to left
-          for (const Tuple& t: *temp_v) {
+          for (const Tuple& t: temp_v) {
             if (!predicate_ || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
               LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
