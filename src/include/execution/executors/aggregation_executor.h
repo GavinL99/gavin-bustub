@@ -200,11 +200,10 @@ class AggregationExecutor : public AbstractExecutor {
       ++aht_iterator_;
       if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
         std::vector<Value> merged_vec;
-        for (const auto& v: t_key.group_bys_) {
-          merged_vec.push_back(v);
-        }
-        for (const auto& v: t_value.aggregates_) {
-          merged_vec.push_back(v);
+        // have to reconstruct the tuple based on the output schema
+        // with specific ordering
+        for (const auto& col: plan_->OutputSchema()->GetColumns()) {
+          merged_vec.push_back(col.GetExpr()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_));
         }
         *tuple = Tuple(merged_vec, plan_->OutputSchema());
         return true;
