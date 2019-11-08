@@ -11,8 +11,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "storage/page/hash_table_block_page.h"
-#include "storage/index/generic_key.h"
 #include "cassert"
+#include "storage/index/generic_key.h"
 
 namespace bustub {
 
@@ -32,7 +32,7 @@ bool HASH_TABLE_BLOCK_TYPE::Insert(slot_offset_t bucket_ind, const KeyType &key,
   size_t bit_idx = bucket_ind % 8;
   // can still insert if tombstone
   if ((occupied_[char_idx] >> bit_idx) & 0x01 && (readable_[char_idx] >> bit_idx) & 0x01) {
-      return false;
+    return false;
   }
   // set bit for readable, occupied to 1
   occupied_[char_idx] |= (0x01 << bit_idx);

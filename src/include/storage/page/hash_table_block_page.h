@@ -33,71 +33,71 @@ namespace bustub {
  *  Here '+' means concatenation.
  *
  */
-template<typename KeyType, typename ValueType, typename KeyComparator>
+template <typename KeyType, typename ValueType, typename KeyComparator>
 class HashTableBlockPage {
  public:
-    // Delete all constructor / destructor to ensure memory safety
-    HashTableBlockPage() = delete;
+  // Delete all constructor / destructor to ensure memory safety
+  HashTableBlockPage() = delete;
 
-    /**
-     * Gets the key at an index in the block.
-     *
-     * @param bucket_ind the index in the block to get the key at
-     * @return key at index bucket_ind of the block
-     */
-    KeyType KeyAt(slot_offset_t bucket_ind) const;
+  /**
+   * Gets the key at an index in the block.
+   *
+   * @param bucket_ind the index in the block to get the key at
+   * @return key at index bucket_ind of the block
+   */
+  KeyType KeyAt(slot_offset_t bucket_ind) const;
 
-    /**
-     * Gets the value at an index in the block.
-     *
-     * @param bucket_ind the index in the block to get the value at
-     * @return value at index bucket_ind of the block
-     */
-    ValueType ValueAt(slot_offset_t bucket_ind) const;
+  /**
+   * Gets the value at an index in the block.
+   *
+   * @param bucket_ind the index in the block to get the value at
+   * @return value at index bucket_ind of the block
+   */
+  ValueType ValueAt(slot_offset_t bucket_ind) const;
 
-    /**
-     * Attempts to insert a key and value into an index in the block.
-     * The insert is thread safe. It uses compare and swap to claim the index,
-     * and then writes the key and value into the index, and then marks the
-     * index as readable.
-     *
-     * @param bucket_ind index to write the key and value to
-     * @param key key to insert
-     * @param value value to insert
-     * @return If the value is inserted successfully, it returns true. If the
-     * index is marked as occupied before the key and value can be inserted,
-     * Insert returns false.
-     */
-    bool Insert(slot_offset_t bucket_ind, const KeyType &key, const ValueType &value);
+  /**
+   * Attempts to insert a key and value into an index in the block.
+   * The insert is thread safe. It uses compare and swap to claim the index,
+   * and then writes the key and value into the index, and then marks the
+   * index as readable.
+   *
+   * @param bucket_ind index to write the key and value to
+   * @param key key to insert
+   * @param value value to insert
+   * @return If the value is inserted successfully, it returns true. If the
+   * index is marked as occupied before the key and value can be inserted,
+   * Insert returns false.
+   */
+  bool Insert(slot_offset_t bucket_ind, const KeyType &key, const ValueType &value);
 
-    /**
-     * Removes a key and value at index.
-     *
-     * @param bucket_ind ind to remove the value
-     */
-    void Remove(slot_offset_t bucket_ind);
+  /**
+   * Removes a key and value at index.
+   *
+   * @param bucket_ind ind to remove the value
+   */
+  void Remove(slot_offset_t bucket_ind);
 
-    /**
-     * Returns whether or not an index is occupied (key/value pair or tombstone)
-     *
-     * @param bucket_ind index to look at
-     * @return true if the index is occupied, false otherwise
-     */
-    bool IsOccupied(slot_offset_t bucket_ind) const;
+  /**
+   * Returns whether or not an index is occupied (key/value pair or tombstone)
+   *
+   * @param bucket_ind index to look at
+   * @return true if the index is occupied, false otherwise
+   */
+  bool IsOccupied(slot_offset_t bucket_ind) const;
 
-    /**
-     * Returns whether or not an index is readable (valid key/value pair)
-     *
-     * @param bucket_ind index to look at
-     * @return true if the index is readable, false otherwise
-     */
-    bool IsReadable(slot_offset_t bucket_ind) const;
+  /**
+   * Returns whether or not an index is readable (valid key/value pair)
+   *
+   * @param bucket_ind index to look at
+   * @return true if the index is readable, false otherwise
+   */
+  bool IsReadable(slot_offset_t bucket_ind) const;
 
  private:
-    std::atomic_char occupied_[(BLOCK_ARRAY_SIZE - 1) / 8 + 1];
-    // 0 if tombstone/brand new (never occupied), 1 otherwise.
-    std::atomic_char readable_[(BLOCK_ARRAY_SIZE - 1) / 8 + 1];
-    MappingType array_[0];
+  std::atomic_char occupied_[(BLOCK_ARRAY_SIZE - 1) / 8 + 1];
+  // 0 if tombstone/brand new (never occupied), 1 otherwise.
+  std::atomic_char readable_[(BLOCK_ARRAY_SIZE - 1) / 8 + 1];
+  MappingType array_[0];
 };
 
 }  // namespace bustub

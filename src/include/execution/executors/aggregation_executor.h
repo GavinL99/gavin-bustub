@@ -165,9 +165,11 @@ class AggregationExecutor : public AbstractExecutor {
    */
   AggregationExecutor(ExecutorContext *exec_ctx, const AggregationPlanNode *plan,
                       std::unique_ptr<AbstractExecutor> &&child)
-      : AbstractExecutor(exec_ctx), plan_(plan), child_(std::move(child)), aht_(plan_->GetAggregates(),
-          plan_->GetAggregateTypes()),
-          aht_iterator_(aht_.Begin()) {}
+      : AbstractExecutor(exec_ctx),
+        plan_(plan),
+        child_(std::move(child)),
+        aht_(plan_->GetAggregates(), plan_->GetAggregateTypes()),
+        aht_iterator_(aht_.Begin()) {}
 
   /** Do not use or remove this function, otherwise you will get zero points. */
   const AbstractExecutor *GetChildExecutor() const { return child_.get(); }
@@ -198,11 +200,12 @@ class AggregationExecutor : public AbstractExecutor {
       AggregateKey t_key = aht_iterator_.Key();
       AggregateValue t_value = aht_iterator_.Val();
       ++aht_iterator_;
-      if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
+      if (!plan_->GetHaving() ||
+          plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
         std::vector<Value> merged_vec;
         // have to reconstruct the tuple based on the output schema
         // with specific ordering
-        for (const auto& col: plan_->OutputSchema()->GetColumns()) {
+        for (const auto &col : plan_->OutputSchema()->GetColumns()) {
           merged_vec.push_back(col.GetExpr()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_));
         }
         *tuple = Tuple(merged_vec, plan_->OutputSchema());

@@ -7,9 +7,9 @@
 
 #include "buffer/buffer_pool_manager.h"
 #include "catalog/schema.h"
+#include "common/logger.h"
 #include "storage/index/index.h"
 #include "storage/table/table_heap.h"
-#include "common/logger.h"
 
 namespace bustub {
 

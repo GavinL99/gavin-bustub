@@ -15,11 +15,11 @@
 #include <memory>
 #include <utility>
 
+#include <cassert>
 #include "execution/executor_context.h"
 #include "execution/executors/abstract_executor.h"
 #include "execution/plans/insert_plan.h"
 #include "storage/table/tuple.h"
-#include <cassert>
 
 namespace bustub {
 /**
@@ -36,15 +36,13 @@ class InsertExecutor : public AbstractExecutor {
    */
   InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *plan,
                  std::unique_ptr<AbstractExecutor> &&child_executor)
-      : AbstractExecutor(exec_ctx), plan_(plan), child_exec_(std::move(child_executor)) {
-  }
+      : AbstractExecutor(exec_ctx), plan_(plan), child_exec_(std::move(child_executor)) {}
 
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); }
 
   void Init() override {
     is_raw_ = plan_->IsRawInsert();
-    table_ptr_ = exec_ctx_->GetCatalog()->GetTable(
-      plan_->TableOid());
+    table_ptr_ = exec_ctx_->GetCatalog()->GetTable(plan_->TableOid());
     if (!is_raw_) {
       child_exec_->Init();
     }
@@ -71,10 +69,9 @@ class InsertExecutor : public AbstractExecutor {
         }
       }
     } else {
-       for (const auto& t: plan_->RawValues()) {
-         // have to get the schema from the table!
-        if (!table_ptr_->table_->InsertTuple(
-            Tuple(t, &(table_ptr_->schema_)), rid, exec_ctx_->GetTransaction())) {
+      for (const auto &t : plan_->RawValues()) {
+        // have to get the schema from the table!
+        if (!table_ptr_->table_->InsertTuple(Tuple(t, &(table_ptr_->schema_)), rid, exec_ctx_->GetTransaction())) {
           output = false;
           break;
         }
@@ -89,6 +86,5 @@ class InsertExecutor : public AbstractExecutor {
   bool is_raw_;
   std::unique_ptr<AbstractExecutor> child_exec_;
   TableMetadata *table_ptr_;
-
 };
 }  // namespace bustub

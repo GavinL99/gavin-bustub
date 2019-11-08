@@ -13,9 +13,7 @@
 #include "storage/page/hash_table_header_page.h"
 
 namespace bustub {
-page_id_t HashTableHeaderPage::GetBlockPageId(size_t index) {
-  return block_page_ids_[index];
-}
+page_id_t HashTableHeaderPage::GetBlockPageId(size_t index) { return block_page_ids_[index]; }
 
 page_id_t HashTableHeaderPage::GetPageId() const { return page_id_; }
 

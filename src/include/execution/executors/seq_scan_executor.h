@@ -31,11 +31,12 @@ class SeqScanExecutor : public AbstractExecutor {
    * @param exec_ctx the executor context
    * @param plan the sequential scan plan to be executed
    */
-  SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan) : AbstractExecutor(exec_ctx), plan_(plan),
-  table_ptr_(exec_ctx->GetCatalog()->GetTable(plan_->GetTableOid())),
-  iter_(table_ptr_->table_->Begin(exec_ctx->GetTransaction())),
-  iter_end_(table_ptr_->table_->End()) {
-  }
+  SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
+      : AbstractExecutor(exec_ctx),
+        plan_(plan),
+        table_ptr_(exec_ctx->GetCatalog()->GetTable(plan_->GetTableOid())),
+        iter_(table_ptr_->table_->Begin(exec_ctx->GetTransaction())),
+        iter_end_(table_ptr_->table_->End()) {}
 
   void Init() override {
     schema_ = plan_->OutputSchema();
@@ -45,7 +46,7 @@ class SeqScanExecutor : public AbstractExecutor {
   bool Next(Tuple *tuple) override {
     while (iter_ != iter_end_) {
       // have to use assignment operator of the dummy Tuple!
-//      *tuple = *(iter_++);
+      //      *tuple = *(iter_++);
       *tuple = *iter_;
       ++iter_;
       if (!predicate_ || predicate_->Evaluate(tuple, schema_).GetAs<bool>()) {
@@ -65,6 +66,5 @@ class SeqScanExecutor : public AbstractExecutor {
   TableIterator iter_end_;
   const AbstractExpression *predicate_;
   const Schema *schema_;
-
 };
 }  // namespace bustub

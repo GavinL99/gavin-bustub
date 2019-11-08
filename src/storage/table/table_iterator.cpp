@@ -40,8 +40,7 @@ TableIterator &TableIterator::operator++() {
   assert(cur_page != nullptr);  // all pages are pinned
 
   RID next_tuple_rid;
-  if (!cur_page->GetNextTupleRid(tuple_->rid_,
-                                 &next_tuple_rid)) {  // end of this page
+  if (!cur_page->GetNextTupleRid(tuple_->rid_, &next_tuple_rid)) {  // end of this page
     while (cur_page->GetNextPageId() != INVALID_PAGE_ID) {
       auto next_page = static_cast<TablePage *>(buffer_pool_manager->FetchPage(cur_page->GetNextPageId()));
       cur_page->RUnlatch();

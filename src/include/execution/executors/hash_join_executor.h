@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/logger.h"
 #include "common/util/hash_util.h"
 #include "container/hash/hash_function.h"
 #include "container/hash/linear_probe_hash_table.h"
@@ -28,7 +29,6 @@
 #include "storage/index/hash_comparator.h"
 #include "storage/table/tmp_tuple.h"
 #include "storage/table/tuple.h"
-#include "common/logger.h"
 
 namespace bustub {
 /**
@@ -75,10 +75,7 @@ class SimpleHashJoinHashTable {
    */
   void GetValue(Transaction *txn, hash_t h, std::vector<Tuple> *t) { *t = hash_table_[h]; }
 
-  bool CheckKey(Transaction *txn, hash_t h) {
-    return (hash_table_.find(h) != hash_table_.end());
-  }
-
+  bool CheckKey(Transaction *txn, hash_t h) { return (hash_table_.find(h) != hash_table_.end()); }
 
  private:
   std::unordered_map<hash_t, std::vector<Tuple>> hash_table_;
@@ -105,8 +102,7 @@ class HashJoinExecutor : public AbstractExecutor {
    */
   HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan, std::unique_ptr<AbstractExecutor> &&left,
                    std::unique_ptr<AbstractExecutor> &&right)
-      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)) {
-      }
+      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)) {}
 
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
   // Uncomment me! const HT *GetJHT() const { return &jht_; }
@@ -151,9 +147,9 @@ class HashJoinExecutor : public AbstractExecutor {
           jht_.GetValue(exec_ctx_->GetTransaction(), r_hash_v, &temp_v);
           // need to further check predicate
           // merge tuples for two sides, assume concat right to left
-          for (const Tuple& t: temp_v) {
+          for (const Tuple &t : temp_v) {
             if (!predicate_ || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
-//              LOG_DEBUG("Start merging...\n");
+              //              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
               // add by left schema
               for (uint32_t i = 0; i < l_schema_->GetColumnCount(); ++i) {
@@ -162,10 +158,8 @@ class HashJoinExecutor : public AbstractExecutor {
               for (uint32_t i = 0; i < r_schema_->GetColumnCount(); ++i) {
                 temp_merged_v.push_back(r_tuple->GetValue(r_schema_, i));
               }
-              merged_tuple_vec_.emplace_back(
-                  Tuple(temp_merged_v, plan_->OutputSchema())
-                  );
-//              LOG_DEBUG("Finished merging...\n");
+              merged_tuple_vec_.emplace_back(Tuple(temp_merged_v, plan_->OutputSchema()));
+              //              LOG_DEBUG("Finished merging...\n");
             }
           }
           // if have matched something
@@ -178,7 +172,7 @@ class HashJoinExecutor : public AbstractExecutor {
 
     if (!merged_tuple_vec_.empty()) {
       // which tuple to output
-      merged_idx_ = merged_idx_ == -1? 0: merged_idx_ + 1;
+      merged_idx_ = merged_idx_ == -1 ? 0 : merged_idx_ + 1;
       // have to use assignment operator of the dummy Tuple!
       *tuple = merged_tuple_vec_[merged_idx_];
       // if use out all tuples retrieved last time, reset
@@ -228,7 +222,5 @@ class HashJoinExecutor : public AbstractExecutor {
   std::unique_ptr<AbstractExecutor> left_, right_;
   const Schema *l_schema_, *r_schema_;
   const AbstractExpression *predicate_;
-
-
 };
 }  // namespace bustub
