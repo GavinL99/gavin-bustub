@@ -45,7 +45,9 @@ class SeqScanExecutor : public AbstractExecutor {
   bool Next(Tuple *tuple) override {
     while (iter_ != iter_end_) {
       // have to use assignment operator of the dummy Tuple!
-      *tuple = *(iter_++);
+//      *tuple = *(iter_++);
+      *tuple = *iter_;
+      ++iter_;
       if (predicate_->Evaluate(tuple, schema_).GetAs<bool>()) {
         return true;
       }
