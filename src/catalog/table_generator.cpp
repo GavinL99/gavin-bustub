@@ -96,6 +96,14 @@ void TableGenerator::GenerateTestTables() {
         {"col3", TypeId::BIGINT, false, Dist::Uniform, 0, 1024},
         {"col4", TypeId::INTEGER, true, Dist::Uniform, 0, 2048}}},
 
+      // Table 3: a lot of dup keys
+      {"test_3",
+          TEST1_SIZE,
+          {{"colA", TypeId::INTEGER, false, Dist::Uniform, 0, 5},
+              {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 5},
+              {"colC", TypeId::INTEGER, false, Dist::Uniform, 0, 9999},
+              {"colD", TypeId::INTEGER, false, Dist::Uniform, 0, 99999}}},
+
       // Empty table with two columns
       {"empty_table2",
        0,
