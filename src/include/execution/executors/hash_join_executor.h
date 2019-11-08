@@ -156,9 +156,11 @@ class HashJoinExecutor : public AbstractExecutor {
 //              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
               // add by left schema
+              LOG_DEBUG("Get left values...\n");
               for (uint32_t i = 0; i < l_schema_->GetColumnCount(); ++i) {
                 temp_merged_v.push_back(t.GetValue(l_schema_, i));
               }
+              LOG_DEBUG("Get right Values...\n");
               for (uint32_t i = 0; i < r_schema_->GetColumnCount(); ++i) {
                 temp_merged_v.push_back(r_tuple->GetValue(r_schema_, i));
               }
