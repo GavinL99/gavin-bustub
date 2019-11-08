@@ -197,7 +197,7 @@ TEST_F(ExecutorTest, SimpleRawInsertTest) {
 }
 
 // NOLINTNEXTLINE
-TEST_F(ExecutorTest, DISABLED_SimpleSelectInsertTest) {
+TEST_F(ExecutorTest, SimpleSelectInsertTest) {
   // INSERT INTO empty_table2 SELECT colA, colB FROM test_1 WHERE colA < 500
   std::unique_ptr<AbstractPlanNode> scan_plan1;
   const Schema *out_schema1;
@@ -211,6 +211,7 @@ TEST_F(ExecutorTest, DISABLED_SimpleSelectInsertTest) {
     out_schema1 = MakeOutputSchema({{"colA", colA}, {"colB", colB}});
     scan_plan1 = std::make_unique<SeqScanPlanNode>(out_schema1, predicate, table_info->oid_);
   }
+
   std::unique_ptr<AbstractPlanNode> insert_plan;
   {
     auto table_info = GetExecutorContext()->GetCatalog()->GetTable("empty_table2");

@@ -45,6 +45,9 @@ class InsertExecutor : public AbstractExecutor {
     is_raw_ = plan_->IsRawInsert();
     table_ptr_ = exec_ctx_->GetCatalog()->GetTable(
       plan_->TableOid());
+    if (!is_raw_) {
+      child_exec_->Init();
+    }
   }
 
   // Note that Insert does not make use of the tuple pointer being passed in.
