@@ -199,7 +199,14 @@ class AggregationExecutor : public AbstractExecutor {
 
   bool Next(Tuple *tuple) override {
     if (aht_iterator_ != aht_.End()) {
-      *tuple = Tuple(aht_iterator_.Val().aggregates_, plan_->OutputSchema());
+      std::vector<Value> merged_vec;
+      for (const auto& v: aht_iterator_.Key().group_bys_) {
+        merged_vec.push_back(v);
+      }
+      for (const auto& v: aht_iterator_.Val().aggregates_) {
+        merged_vec.push_back(v);
+      }
+      *tuple = Tuple(merged_vec, plan_->OutputSchema());
       ++aht_iterator_;
       return true;
     }
