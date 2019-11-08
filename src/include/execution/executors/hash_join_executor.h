@@ -183,7 +183,6 @@ class HashJoinExecutor : public AbstractExecutor {
       merged_idx_ = merged_idx_ == -1? 0: merged_idx_ + 1;
       // have to use assignment operator of the dummy Tuple!
       *tuple = merged_tuple_vec_[merged_idx_];
-      merged_idx_ += 1;
       // if use out all tuples retrieved last time, reset
       if (merged_idx_ == static_cast<int>(merged_tuple_vec_.size())) {
         merged_tuple_vec_.clear();
