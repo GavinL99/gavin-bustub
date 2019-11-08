@@ -182,33 +182,33 @@ class AggregationExecutor : public AbstractExecutor {
     Tuple tuple;
     Tuple *tuple_ptr = &tuple;
     while (child_->Next(tuple_ptr)) {
-      // note that cols in OutputSchema are all agg expressions
-      // so use EvalAgg instead!
-      // first call EvalAgg on cols to get a value, then call EvalAgg on
-      // comparison operator to get bool
       AggregateKey t_key = MakeKey(tuple_ptr);
       AggregateValue t_value = MakeVal(tuple_ptr);
-      if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
-        LOG_DEBUG("Key: %d, V: %d\n", (int) t_key.group_bys_.size(),
-                  (int) t_value.aggregates_.size());
-        aht_.InsertCombine(t_key, t_value);
-      }
+      aht_.InsertCombine(t_key, t_value);
     }
     aht_iterator_ = aht_.Begin();
   }
 
   bool Next(Tuple *tuple) override {
-    if (aht_iterator_ != aht_.End()) {
-      std::vector<Value> merged_vec;
-      for (const auto& v: aht_iterator_.Key().group_bys_) {
-        merged_vec.push_back(v);
-      }
-      for (const auto& v: aht_iterator_.Val().aggregates_) {
-        merged_vec.push_back(v);
-      }
-      *tuple = Tuple(merged_vec, plan_->OutputSchema());
+    while (aht_iterator_ != aht_.End()) {
+      // note that cols in OutputSchema are all agg expressions
+      // so use EvalAgg instead!
+      // first call EvalAgg on cols to get a value, then call EvalAgg on
+      // comparison operator to get bool
+      AggregateKey t_key = aht_iterator_.Key();
+      AggregateValue t_value = aht_iterator_.Val();
       ++aht_iterator_;
-      return true;
+      if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
+        std::vector<Value> merged_vec;
+        for (const auto& v: t_key.group_bys_) {
+          merged_vec.push_back(v);
+        }
+        for (const auto& v: t_value.aggregates_) {
+          merged_vec.push_back(v);
+        }
+        *tuple = Tuple(merged_vec, plan_->OutputSchema());
+        return true;
+      }
     }
     return false;
   }
