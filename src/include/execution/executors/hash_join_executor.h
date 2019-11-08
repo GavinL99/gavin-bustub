@@ -28,6 +28,7 @@
 #include "storage/index/hash_comparator.h"
 #include "storage/table/tmp_tuple.h"
 #include "storage/table/tuple.h"
+#include "common/logger.h"
 
 namespace bustub {
 /**
@@ -125,6 +126,7 @@ class HashJoinExecutor : public AbstractExecutor {
       hash_t l_hash_v = HashValues(l_tuple, l_schema_, plan_->GetLeftKeys());
       jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, *l_tuple);
     }
+    LOG_DEBUG("Finish building HT!\n");
   }
 
   // pass in an emptry tuple to modify, not nullptr
