@@ -155,15 +155,17 @@ class HashJoinExecutor : public AbstractExecutor {
             if (!predicate_ || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
               LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
-              for (uint32_t i = 0; i < t.GetLength(); ++i) {
+              // add by left schema
+              for (uint32_t i = 0; i < l_schema_->GetColumnCount(); ++i) {
                 temp_merged_v.push_back(t.GetValue(l_schema_, i));
               }
-              for (uint32_t i = 0; i < r_tuple->GetLength(); ++i) {
+              for (uint32_t i = 0; i < r_schema_->GetColumnCount(); ++i) {
                 temp_merged_v.push_back(r_tuple->GetValue(r_schema_, i));
               }
               merged_tuple_vec_.emplace_back(
                   Tuple(temp_merged_v, plan_->OutputSchema())
                   );
+              LOG_DEBUG("Finished merging...\n");
             }
           }
           // if have matched something
