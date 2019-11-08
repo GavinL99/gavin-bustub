@@ -28,7 +28,8 @@ TEST(CatalogTest, CreateTableTest) {
   auto catalog = new SimpleCatalog(bpm, nullptr, nullptr);
   std::string table_name = "potato";
   std::string table_name_1 = "tomato";
-  TableMetadata *t1, *t2;
+  TableMetadata *t1;
+  TableMetadata *t2;
 
   // The table shouldn't exist in the catalog yet.
   //  EXPECT_THROW(catalog->GetTable(table_name), std::out_of_range);

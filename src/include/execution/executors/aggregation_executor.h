@@ -200,7 +200,7 @@ class AggregationExecutor : public AbstractExecutor {
       AggregateKey t_key = aht_iterator_.Key();
       AggregateValue t_value = aht_iterator_.Val();
       ++aht_iterator_;
-      if (!plan_->GetHaving() ||
+      if (plan_->GetHaving() == nullptr ||
           plan_->GetHaving()->EvaluateAggregate(t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
         std::vector<Value> merged_vec;
         // have to reconstruct the tuple based on the output schema
