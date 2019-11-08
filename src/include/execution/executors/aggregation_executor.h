@@ -182,8 +182,15 @@ class AggregationExecutor : public AbstractExecutor {
     Tuple tuple;
     Tuple *tuple_ptr = &tuple;
     while (child_->Next(tuple_ptr)) {
-      if (!plan_->GetHaving() || plan_->GetHaving()->Evaluate(tuple_ptr, plan_->OutputSchema()).GetAs<bool>()) {
-        aht_.InsertCombine(MakeKey(tuple_ptr), MakeVal(tuple_ptr));
+      // note that cols in OutputSchema are all agg expressions
+      // so use EvalAgg instead!
+      // first call EvalAgg on cols to get a value, then call EvalAgg on
+      // comparison operator to get bool
+      AggregateKey t_key = MakeKey(tuple_ptr);
+      AggregateValue t_value = MakeVal(tuple_ptr);
+      if (!plan_->GetHaving() || plan_->GetHaving()->EvaluateAggregate(
+          t_key.group_bys_, t_value.aggregates_).GetAs<bool>()) {
+        aht_.InsertCombine(t_key, t_value);
       }
     }
     aht_iterator_ = aht_.Begin();
