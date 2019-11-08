@@ -177,11 +177,12 @@ class AggregationExecutor : public AbstractExecutor {
   // populate the simple hash agg table
   // need to apply having predicate
   void Init() override {
+    child_->Init();
     aht_.GenerateInitialAggregateValue();
     Tuple tuple;
     Tuple *tuple_ptr = &tuple;
     while (child_->Next(tuple_ptr)) {
-      if (plan_->GetHaving()->Evaluate(tuple_ptr, plan_->OutputSchema()).GetAs<bool>()) {
+      if (!plan_->GetHaving() || plan_->GetHaving()->Evaluate(tuple_ptr, plan_->OutputSchema()).GetAs<bool>()) {
         aht_.InsertCombine(MakeKey(tuple_ptr), MakeVal(tuple_ptr));
       }
     }
