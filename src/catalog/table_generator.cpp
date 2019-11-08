@@ -98,9 +98,9 @@ void TableGenerator::GenerateTestTables() {
 
       // Table 3: a lot of dup keys
       {"test_3",
-          TEST1_SIZE,
-          {{"colA", TypeId::INTEGER, false, Dist::Uniform, 0, 5},
-              {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 5},
+          1000,
+          {{"colA", TypeId::INTEGER, false, Dist::Uniform, 0, 100},
+              {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 100},
               {"colC", TypeId::INTEGER, false, Dist::Uniform, 0, 9999},
               {"colD", TypeId::INTEGER, false, Dist::Uniform, 0, 99999}}},
 
