@@ -105,7 +105,7 @@ class HashJoinExecutor : public AbstractExecutor {
       : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)) {}
 
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
-  // Uncomment me! const HT *GetJHT() const { return &jht_; }
+  const HT *GetJHT() const { return &jht_; }
 
   const Schema *GetOutputSchema() override { return plan_->OutputSchema(); }
 
