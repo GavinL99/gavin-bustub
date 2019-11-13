@@ -20,14 +20,32 @@ namespace bustub {
  */
 class TmpTuplePage : public Page {
  public:
-  void Init(page_id_t page_id, uint32_t page_size) {}
+  void Init(page_id_t page_id, uint32_t page_size) {
+    memcpy(GetData(), &page_id, sizeof(page_id));
+    memcpy(GetData() + OFFSET_FREE_SPACE, &page_size, sizeof(uint32_t));
+  }
 
-  page_id_t GetTablePageId() { return INVALID_PAGE_ID; }
+  page_id_t GetTablePageId() {
+    return *reinterpret_cast<page_id_t*>(GetData());
+  }
 
-  bool Insert(const Tuple &tuple, TmpTuple *out) { return false; }
+  bool Insert(const Tuple &tuple, TmpTuple *out) {
+    auto ptr_to_sz = reinterpret_cast<uint32_t *>(GetData() + OFFSET_FREE_SPACE);
+    uint32_t tuple_sz = tuple.GetLength();
+    if (*ptr_to_sz >= tuple_sz + sizeof(uint32_t) + OFFSET_FREE_SPACE) {
+      size_t offset = (*ptr_to_sz) - tuple_sz;
+      memcpy(GetData() + offset, tuple.GetData(), tuple_sz);
+      memcpy(GetData() + offset - sizeof(uint32_t), &tuple_sz, tuple_sz);
+      *ptr_to_sz -= tuple_sz + sizeof(uint32_t);
+      *out = TmpTuple(GetTablePageId(), offset);
+      return true;
+    }
+    return false;
+  }
 
  private:
   static_assert(sizeof(page_id_t) == 4);
+  static constexpr size_t OFFSET_FREE_SPACE = 8;
 };
 
 }  // namespace bustub
