@@ -52,7 +52,6 @@ TEST(TmpTuplePageTest, BasicTest) {
   columns.emplace_back("B", TypeId::INTEGER);
   Schema schema1(columns);
   values.emplace_back(ValueFactory::GetIntegerValue(456));
-
   Tuple tuple1(values, &schema1);
   page.Insert(tuple, &tmp_tuple);
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + sizeof(page_id_t) + sizeof(lsn_t)), PAGE_SIZE - 16);
