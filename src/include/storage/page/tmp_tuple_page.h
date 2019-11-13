@@ -32,12 +32,12 @@ class TmpTuplePage : public Page {
   bool Insert(const Tuple &tuple, TmpTuple *out) {
     auto ptr_to_sz = reinterpret_cast<uint32_t *>(GetData() + OFFSET_FREE_SPACE);
     uint32_t tuple_sz = tuple.GetLength();
-    if (*ptr_to_sz >= tuple_sz + sizeof(uint32_t) + OFFSET_FREE_SPACE) {
+    if (*ptr_to_sz - OFFSET_FREE_SPACE >= tuple_sz + sizeof(uint32_t)) {
       size_t offset = (*ptr_to_sz) - tuple_sz;
       memcpy(GetData() + offset, tuple.GetData(), tuple_sz);
-      memcpy(GetData() + offset - sizeof(uint32_t), &tuple_sz, tuple_sz);
-      *ptr_to_sz -= tuple_sz + sizeof(uint32_t);
+      memcpy(GetData() + offset - sizeof(uint32_t), &tuple_sz, sizeof(uint32_t));
       *out = TmpTuple(GetTablePageId(), offset);
+      *ptr_to_sz -= tuple_sz + sizeof(uint32_t);
       return true;
     }
     return false;
