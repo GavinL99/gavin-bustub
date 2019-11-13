@@ -36,7 +36,7 @@ class TmpTuplePage : public Page {
       size_t offset = (*ptr_to_sz) - tuple_sz;
       memcpy(GetData() + offset, tuple.GetData(), tuple_sz);
       memcpy(GetData() + offset - sizeof(uint32_t), &tuple_sz, sizeof(uint32_t));
-      *out = TmpTuple(GetTablePageId(), offset);
+      *out = TmpTuple(GetTablePageId(), offset + tuple_sz);
       *ptr_to_sz -= tuple_sz + sizeof(uint32_t);
       return true;
     }
