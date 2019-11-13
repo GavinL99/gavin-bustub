@@ -49,12 +49,16 @@ TEST(TmpTuplePageTest, BasicTest) {
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
   ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE);
 
-  Tuple tuple1(values, &schema);
+  columns.emplace_back("B", TypeId::INTEGER);
+  Schema schema1(columns);
+  values.emplace_back(ValueFactory::GetIntegerValue(456));
+
+  Tuple tuple1(values, &schema1);
   page.Insert(tuple, &tmp_tuple);
 
-  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + sizeof(page_id_t) + sizeof(lsn_t)), PAGE_SIZE - 16);
-  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 16), 4);
-  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 12), 123);
+  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + sizeof(page_id_t) + sizeof(lsn_t)), PAGE_SIZE - 20);
+  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 20), 8);
+//  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 12), 123);
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
   ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 8);
 }
