@@ -15,6 +15,9 @@ class TmpTuple {
   page_id_t GetPageId() const { return page_id_; }
   size_t GetOffset() const { return offset_; }
 
+  void setPageId(page_id_t page_id) {page_id_ = page_id;}
+  void setOffset(size_t offset) {offset_ = offset;}
+
  private:
   page_id_t page_id_;
   size_t offset_;
