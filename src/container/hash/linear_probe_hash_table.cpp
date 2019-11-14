@@ -81,14 +81,14 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   // hash f -> page_id -> block page -> linear probe -> stop till not occupied
   // get the actual data
   std::unordered_set<Page *> page_latch_set;
-  LOG_DEBUG("Lock\n");
+  // LOG_DEBUG("Lock\n");
   table_latch_.RLock();
-  LOG_DEBUG("Locked\n");
+  // LOG_DEBUG("Locked\n");
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
   assert(header_page_p);
-  LOG_DEBUG("Lock\n");
+  // LOG_DEBUG("Lock\n");
   header_page_p->RLatch();
-  LOG_DEBUG("Locked\n");
+  // LOG_DEBUG("Locked\n");
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
   uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
   uint64_t start_id = bucket_id;
@@ -110,10 +110,10 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
-        LOG_DEBUG("Lock\n");
+        // LOG_DEBUG("Lock\n");
         next_latch_page->RLatch();
         temp_page->RUnlatch();
-        LOG_DEBUG("Locked\n");
+        // LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, false);
 //        lock_with_set(page_latch_set, temp_page, false, false);
         temp_page = next_latch_page;
@@ -159,7 +159,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   //    lock_with_set(page_latch_set, header_page_p, false, false);
 //  assert(page_latch_set.empty());
   table_latch_.RUnlock();
-  LOG_DEBUG("Finished Get..\n");
+  // LOG_DEBUG("Finished Get..\n");
   return !result->empty();
 }
 
@@ -171,14 +171,14 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   // need to traverse until the first vacant slot in case of duplicates
   // but insertion can be tombstones in the middle
   std::unordered_set<Page *> page_latch_set;
-  LOG_DEBUG("Acquire read lock...\n");
+  // LOG_DEBUG("Acquire read lock...\n");
   table_latch_.RLock();
-  LOG_DEBUG("Locked\n");
+  // LOG_DEBUG("Locked\n");
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
   assert(header_page_p);
-  LOG_DEBUG("Acquire header page lock...\n");
+  // LOG_DEBUG("Acquire header page lock...\n");
   header_page_p->RLatch();
-  LOG_DEBUG("Locked\n");
+  // LOG_DEBUG("Locked\n");
 //  lock_with_set(page_latch_set, header_page_p, true, false);
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
   uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
@@ -207,20 +207,20 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
-        LOG_DEBUG("Lock\n");
+        // LOG_DEBUG("Lock\n");
         temp_page->WUnlatch();
         next_latch_page->WLatch();
-        LOG_DEBUG("Locked\n");
+        // LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, true);
 //        lock_with_set(page_latch_set, temp_page, false, true);
         temp_page = next_latch_page;
       } else {
-//        LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
+//        // LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
         temp_page = buffer_pool_manager_->FetchPage(page_id);
         assert(temp_page);
-        LOG_DEBUG("Lock\n");
+        // LOG_DEBUG("Lock\n");
         temp_page->WLatch();
-        LOG_DEBUG("Locked\n");
+        // LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, temp_page, true, true);
       }
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -234,7 +234,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (!block_page->IsOccupied(offset) || (bucket_id == start_id && insert_page_id != INVALID_PAGE_ID)) {
       // if insert into tombstones
       if (insert_page_id != INVALID_PAGE_ID) {
-        //          LOG_DEBUG("Insert tombstones...\n");
+        //          // LOG_DEBUG("Insert tombstones...\n");
         assert(insert_page->Insert(insert_offset, key, value));
         // unpin current page on hold
         if (insert_page_id != page_id) {
@@ -244,7 +244,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
           assert(buffer_pool_manager_->UnpinPage(page_id, false));
         }
       } else {
-        //          LOG_DEBUG("Insert vacant...\n");
+        //          // LOG_DEBUG("Insert vacant...\n");
         //  if insert here
         assert(block_page->Insert(offset, key, value));
         assert(buffer_pool_manager_->UnpinPage(page_id, true));
@@ -256,7 +256,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     }
     // possible place to insert; if encounter the first tombstone
     if (!block_page->IsReadable(offset) && insert_page_id == INVALID_PAGE_ID) {
-      //        LOG_DEBUG("Found tombstones...\n");
+      //        // LOG_DEBUG("Found tombstones...\n");
       insert_latch_page = temp_page;
       insert_page_id = page_id;
       insert_page = block_page;
@@ -273,7 +273,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
         insert_latch_page->WUnlatch();
 //        lock_with_set(page_latch_set, insert_latch_page, false, true);
       }
-      LOG_DEBUG("Duplicated!\n");
+      // LOG_DEBUG("Duplicated!\n");
       break;
     }
     // linear probe
@@ -283,7 +283,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
       // need to unpin things here before resize to precent mem leak
       // unlock all latches
-//      LOG_DEBUG("Resize Unlocking...\n");
+//      // LOG_DEBUG("Resize Unlocking...\n");
       assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
       assert(buffer_pool_manager_->UnpinPage(page_id, false));
       header_page_p->RUnlatch();
@@ -292,17 +292,17 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 //      lock_with_set(page_latch_set, temp_page, false, true);
       table_latch_.RUnlock();
 
-//      LOG_DEBUG("Resize locking...\n");
-      LOG_DEBUG("Lock\n");
+//      // LOG_DEBUG("Resize locking...\n");
+      // LOG_DEBUG("Lock\n");
       table_latch_.WLock();
-      LOG_DEBUG("Locked\n");
-      LOG_DEBUG("Start resizing: %d\n", (int)num_buckets_);
+      // LOG_DEBUG("Locked\n");
+      // LOG_DEBUG("Start resizing: %d\n", (int)num_buckets_);
       Resize(num_buckets_);
-      LOG_DEBUG("Finished resizing: %d\n", (int)num_buckets_);
+      // LOG_DEBUG("Finished resizing: %d\n", (int)num_buckets_);
       table_latch_.WUnlock();
-      LOG_DEBUG("Lock\n");
+      // LOG_DEBUG("Lock\n");
       table_latch_.RLock();
-      LOG_DEBUG("Locked\n");
+      // LOG_DEBUG("Locked\n");
       bucket_id = hash_fn_.GetHash(key) % num_buckets_;
       start_id = bucket_id;
       header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
@@ -330,7 +330,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   header_page_p->RUnlatch();
 //  lock_with_set(page_latch_set, header_page_p, false, false);
   table_latch_.RUnlock();
-  LOG_DEBUG("Finished Insert.. \n");
+  // LOG_DEBUG("Finished Insert.. \n");
   return insert_flag;
 }
 
@@ -362,7 +362,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
   while (true) {
     // fetch block page
     if (switch_page) {
-      //        LOG_DEBUG("Page Switched!\n");
+      //        // LOG_DEBUG("Page Switched!\n");
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
@@ -379,7 +379,7 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
     }
     // block_page slot
     offset = bucket_id % BLOCK_ARRAY_SIZE;
-    //      LOG_DEBUG("Probed: %d!\n", (int) offset);
+    //      // LOG_DEBUG("Probed: %d!\n", (int) offset);
 
     if (!block_page->IsOccupied(offset)) {
       break;
@@ -465,23 +465,23 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage(old_page_id));
     assert(block_page);
     // linear probing again
-    //      LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
+    //      // LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
     for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
       if (!block_page->IsReadable(j)) {
         continue;
       }
-      //        LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
+      //        // LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
 
       k_t = block_page->KeyAt(j);
       v_t = block_page->ValueAt(j);
-      //        LOG_DEBUG("Start Block: %d, %d\n", i, j);
+      //        // LOG_DEBUG("Start Block: %d, %d\n", i, j);
       // where it should be in the new table
       bucket_id = hash_fn_.GetHash(k_t) % new_size;
 
       while (true) {
         new_block_page = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
         offset = bucket_id % BLOCK_ARRAY_SIZE;
-        //          LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
+        //          // LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
         if (!new_block_page->IsOccupied(offset)) {
           assert(new_block_page->Insert(offset, k_t, v_t));
           break;
@@ -495,7 +495,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     assert(buffer_pool_manager_->DeletePage(old_page_id));
   }
   // cleanup: delete old header and reset
-  //    LOG_DEBUG("Reset headers...\n");
+  //    // LOG_DEBUG("Reset headers...\n");
   header_page_id_ = new_header_page;
   num_buckets_ = new_size;
   num_block_pages_ = new_num_blocks;
