@@ -67,10 +67,8 @@ HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager
     header_page->AddBlockPageId(temp_p);
     // need to unpin after allocation (flush here!)
     buffer_pool_manager_->FlushPage(temp_p);
-    buffer_pool_manager_->UnpinPage(temp_p, false);
   }
   buffer_pool_manager_->FlushPage(header_page_id_);
-  buffer_pool_manager_->UnpinPage(header_page_id_, false);
 }
 
 /*****************************************************************************
@@ -458,7 +456,6 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     assert(tmp_block_page && "new page!");
     block_pages.push_back(allocate_temp_p);
     assert(buffer_pool_manager_->FlushPage(allocate_temp_p));
-    assert(buffer_pool_manager_->UnpinPage(allocate_temp_p, false));
     header_page->AddBlockPageId(allocate_temp_p);
   }
   KeyType k_t;
