@@ -83,6 +83,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   std::unordered_set<Page *> page_latch_set;
   table_latch_.RLock();
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+  assert(header_page_p);
   header_page_p->RLatch();
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
   uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
@@ -104,6 +105,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       // if need to latch the next page
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(next_latch_page);
         next_latch_page->RLatch();
         temp_page->RUnlatch();
 //        lock_with_set(page_latch_set, next_latch_page, true, false);
@@ -111,6 +113,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
         temp_page = next_latch_page;
       } else {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(temp_page);
         temp_page->RLatch();
 //        lock_with_set(page_latch_set, temp_page, true, false);
       }
@@ -165,6 +168,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   LOG_DEBUG("Acquire read lock...\n");
   table_latch_.RLock();
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+  assert(header_page_p);
   LOG_DEBUG("Acquire header page lock...\n");
   header_page_p->RLatch();
 //  lock_with_set(page_latch_set, header_page_p, true, false);
@@ -194,6 +198,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       // crab latch
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(next_latch_page);
         next_latch_page->WLatch();
         temp_page->WUnlatch();
 //        lock_with_set(page_latch_set, next_latch_page, true, true);
@@ -202,6 +207,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       } else {
         LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
         temp_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(temp_page);
         temp_page->WLatch();
 //        lock_with_set(page_latch_set, temp_page, true, true);
       }
@@ -284,6 +290,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       bucket_id = hash_fn_.GetHash(key) % num_buckets_;
       start_id = bucket_id;
       header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+      assert(header_page_p);
       header_page_p->RLatch();
 //      lock_with_set(page_latch_set, header_page_p, true, false);
       header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
@@ -318,6 +325,7 @@ template <typename KeyType, typename ValueType, typename KeyComparator>
 bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const ValueType &value) {
   table_latch_.RLock();
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
+  assert(header_page_p);
   header_page_p->RLatch();
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
 
@@ -341,11 +349,13 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       //        LOG_DEBUG("Page Switched!\n");
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(next_latch_page);
         next_latch_page->WLatch();
         temp_page->WUnlatch();
         temp_page = next_latch_page;
       } else {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(temp_page);
         temp_page->WLatch();
       }
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -413,6 +423,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   new_header_page = allocate_temp_p = INVALID_PAGE_ID;
   auto prev_header_page =
       reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
+  assert(prev_header_page);
   // allocate new pages
   auto header_page =
       reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(&new_header_page)->GetData());
@@ -436,6 +447,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   for (size_t i = 0; i < num_block_pages_; ++i) {
     old_page_id = prev_header_page->GetBlockPageId(i);
     block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage(old_page_id));
+    assert(block_page);
     //      LOG_DEBUG("Start Block: %d\n", (int) i);
     // linear probing again
     //      LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
