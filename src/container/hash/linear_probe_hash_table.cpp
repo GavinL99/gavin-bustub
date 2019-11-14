@@ -66,9 +66,11 @@ HASH_TABLE_TYPE::LinearProbeHashTable(const std::string &name, BufferPoolManager
     buffer_pool_manager_->NewPage(&temp_p, nullptr);
     header_page->AddBlockPageId(temp_p);
     // need to unpin after allocation (flush here!)
-    buffer_pool_manager_->FlushPage(temp_p);
+//    buffer_pool_manager_->FlushPage(temp_p);
+    buffer_pool_manager_->UnpinPage(temp_p, true);
   }
-  buffer_pool_manager_->FlushPage(header_page_id_);
+//  buffer_pool_manager_->FlushPage(header_page_id_);
+  buffer_pool_manager_->UnpinPage(header_page_id_, true);
 }
 
 /*****************************************************************************
@@ -443,7 +445,8 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   // allocate new pages
   auto header_page =
       reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(&new_header_page)->GetData());
-  buffer_pool_manager_->FlushPage(new_header_page);
+//  buffer_pool_manager_->FlushPage(new_header_page);
+  buffer_pool_manager_->UnpinPage(new_header_page, true);
   header_page->SetSize(new_size);
   header_page->SetPageId(new_header_page);
 
@@ -455,7 +458,8 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     auto tmp_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr));
     assert(tmp_block_page && "new page!");
     block_pages.push_back(allocate_temp_p);
-    assert(buffer_pool_manager_->FlushPage(allocate_temp_p));
+//    assert(buffer_pool_manager_->FlushPage(allocate_temp_p));
+    assert(buffer_pool_manager_->UnpinPage(allocate_temp_p, true));
     header_page->AddBlockPageId(allocate_temp_p);
   }
   KeyType k_t;
