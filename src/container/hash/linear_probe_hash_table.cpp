@@ -446,7 +446,6 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   auto header_page =
       reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(&new_header_page)->GetData());
 //  buffer_pool_manager_->FlushPage(new_header_page);
-  buffer_pool_manager_->UnpinPage(new_header_page, true);
   header_page->SetSize(new_size);
   header_page->SetPageId(new_header_page);
 

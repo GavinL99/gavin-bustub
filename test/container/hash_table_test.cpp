@@ -30,9 +30,9 @@ TEST(HashTableTest, SampleTest) {
   for (int i = 0; i < 5000; i++) {
     ht.Insert(nullptr, i, i);
     std::vector<int> res;
-//    ht.GetValue(nullptr, i, &res);
-//    EXPECT_EQ(1, res.size()) << "Failed to insert " << i << std::endl;
-//    EXPECT_EQ(i, res[0]);
+    ht.GetValue(nullptr, i, &res);
+    EXPECT_EQ(1, res.size()) << "Failed to insert " << i << std::endl;
+    EXPECT_EQ(i, res[0]);
   }
 
   // check if the inserted values are all there
