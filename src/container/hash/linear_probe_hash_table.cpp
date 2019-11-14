@@ -474,17 +474,17 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
       if (!block_page->IsReadable(j)) {
         continue;
       }
-      //        // LOG_DEBUG("bucket: %d, %d\n", (int) j, (int) BLOCK_ARRAY_SIZE);
-
       k_t = block_page->KeyAt(j);
       v_t = block_page->ValueAt(j);
-      //        // LOG_DEBUG("Start Block: %d, %d\n", i, j);
       // where it should be in the new table
       bucket_id = hash_fn_.GetHash(k_t) % new_size;
 
       page_id_t tmp_page_id(INVALID_PAGE_ID);
       while (true) {
-        tmp_page_id = block_pages[bucket_id/BLOCK_ARRAY_SIZE];
+        if (tmp_page_id != INVALID_PAGE_ID || tmp_page_id != block_pages[bucket_id / BLOCK_ARRAY_SIZE]) {
+          assert(buffer_pool_manager_->UnpinPage(tmp_page_id, false));
+        }
+        tmp_page_id = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
         new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
             (tmp_page_id)->GetData());
         assert(new_block_page);
@@ -496,9 +496,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
           break;
         }
         bucket_id = (bucket_id + 1) % new_size;
-        assert(buffer_pool_manager_->UnpinPage(tmp_page_id, false));
       }
-      assert(buffer_pool_manager_->DeletePage(old_page_id) && "delete block!");
     }
     // if need to fetch a new content page
     // delete block page
@@ -512,12 +510,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   num_block_pages_ = new_num_blocks;
   assert(buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false));
   assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()) && "delete header!");
-//  for (size_t j = 0; j < new_num_blocks; ++j) {
-////    assert(buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true));
-////    assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()) && "delete block!");
-//  }
   assert(buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true));
-//  delete[] block_pages;
 }
 
 /*****************************************************************************
