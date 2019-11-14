@@ -295,7 +295,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 //      // LOG_DEBUG("Resize locking...\n");
 //       LOG_DEBUG("Lock\n");
       table_latch_.WLock();
-       LOG_DEBUG("Locked\n");
+//       LOG_DEBUG("Locked\n");
       LOG_DEBUG("Start resizing: %d\n", (int)num_buckets_);
       Resize(num_buckets_);
       LOG_DEBUG("Finished resizing: %d\n", (int)num_buckets_);
