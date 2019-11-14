@@ -218,9 +218,9 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 //        // LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
         temp_page = buffer_pool_manager_->FetchPage(page_id);
         assert(temp_page);
-         LOG_DEBUG("Lock\n");
+//         LOG_DEBUG("Lock\n");
         temp_page->WLatch();
-         LOG_DEBUG("Locked\n");
+//         LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, temp_page, true, true);
       }
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -293,7 +293,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       table_latch_.RUnlock();
 
 //      // LOG_DEBUG("Resize locking...\n");
-       LOG_DEBUG("Lock\n");
+//       LOG_DEBUG("Lock\n");
       table_latch_.WLock();
        LOG_DEBUG("Locked\n");
       LOG_DEBUG("Start resizing: %d\n", (int)num_buckets_);
@@ -366,17 +366,17 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
-        LOG_DEBUG("Lock\n");
+//        LOG_DEBUG("Lock\n");
         temp_page->WUnlatch();
         next_latch_page->WLatch();
-        LOG_DEBUG("Locked\n");
+//        LOG_DEBUG("Locked\n");
         temp_page = next_latch_page;
       } else {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
         assert(temp_page);
-        LOG_DEBUG("Lock\n");
+//        LOG_DEBUG("Lock\n");
         temp_page->WLatch();
-        LOG_DEBUG("Locked\n");
+//        LOG_DEBUG("Locked\n");
       }
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
       switch_page = false;
