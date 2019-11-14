@@ -115,7 +115,7 @@ TEST(HashTableTest, ResizeTest) {
   LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
   // insert a few values
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 30000; i++) {
     //LOG_DEBUG("Resize Insert: %d\n", i);
     ht.Insert(nullptr, i, i);
     std::vector<int> res;
