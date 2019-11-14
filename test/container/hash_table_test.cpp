@@ -132,7 +132,7 @@ TEST(HashTableTest, ResizeTest) {
 }
 
 void insert_f(LinearProbeHashTable<int, int, IntComparator> *ht, int start_i) {
-  for (int i = start_i; i < 5000 + start_i; i++) {
+  for (int i = 0; i < start_i; i++) {
     // std::cout << "Insert: " << std::this_thread::get_id() << " " << i << "\n" << std::endl;
     LOG_DEBUG("Insert: %d\n", i);
     ht->Insert(nullptr, i, i);
