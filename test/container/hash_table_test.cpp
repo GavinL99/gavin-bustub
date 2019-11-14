@@ -27,7 +27,7 @@ TEST(HashTableTest, SampleTest) {
   LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 100, HashFunction<int>());
 
   // insert a few values
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 5000; i++) {
     ht.Insert(nullptr, i, i);
     std::vector<int> res;
     ht.GetValue(nullptr, i, &res);
@@ -36,7 +36,7 @@ TEST(HashTableTest, SampleTest) {
   }
 
   // check if the inserted values are all there
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 5000; i++) {
     std::vector<int> res;
     ht.GetValue(nullptr, i, &res);
     EXPECT_EQ(1, res.size()) << "Failed to keep " << i << std::endl;
@@ -44,7 +44,7 @@ TEST(HashTableTest, SampleTest) {
   }
 
   // insert one more value for each key
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 5000; i++) {
     //      LOG_DEBUG("Insert: %d\n", i);
     if (i == 0) {
       // duplicate values for the same key are not allowed
@@ -72,7 +72,7 @@ TEST(HashTableTest, SampleTest) {
   }
 
   // delete some values
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 5000; i++) {
     std::vector<int> res;
     ht.GetValue(nullptr, i, &res);
     if (i == 0) {
@@ -92,7 +92,7 @@ TEST(HashTableTest, SampleTest) {
     }
   }
   // delete all values
-  for (int i = 0; i < 10000; i++) {
+  for (int i = 0; i < 5000; i++) {
     //      LOG_DEBUG("Delete: %d\n", i);
     if (i == 0) {
       // (0, 0) has been deleted
@@ -115,7 +115,7 @@ TEST(HashTableTest, ResizeTest) {
   LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
 
   // insert a few values
-  for (int i = 0; i < 30000; i++) {
+  for (int i = 0; i < 10000; i++) {
     //LOG_DEBUG("Resize Insert: %d\n", i);
     ht.Insert(nullptr, i, i);
     std::vector<int> res;
