@@ -503,7 +503,10 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     // if need to fetch a new content page
     // delete block page
     assert(buffer_pool_manager_->UnpinPage(old_page_id, false));
-    assert(buffer_pool_manager_->DeletePage(old_page_id) && "delete page!");
+//    assert(buffer_pool_manager_->DeletePage(old_page_id) && "delete page!");
+    while (!buffer_pool_manager_->DeletePage(old_page_id)) {
+      buffer_pool_manager_->UnpinPage(old_page_id, false);
+    }
   }
   // cleanup: delete old header and reset
   //    // LOG_DEBUG("Reset headers...\n");
