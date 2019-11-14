@@ -116,7 +116,7 @@ TEST(HashTableTest, ResizeTest) {
 
   // insert a few values
   for (int i = 0; i < 10000; i++) {
-    LOG_DEBUG("Resize Insert: %d\n", i);
+    //LOG_DEBUG("Resize Insert: %d\n", i);
     ht.Insert(nullptr, i, i);
     std::vector<int> res;
     ht.GetValue(nullptr, i, &res);
