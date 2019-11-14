@@ -82,10 +82,10 @@ class SimpleHashJoinHashTable {
 };
 
 // TODO(student): when you are ready to attempt task 3, replace the using declaration!
-using HT = SimpleHashJoinHashTable;
-//using HashJoinKeyType = hash_t;
-//using HashJoinValType = std::vector<Tuple>;
-//using HT = LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
+//using HT = SimpleHashJoinHashTable;
+using HashJoinKeyType = hash_t;
+using HashJoinValType = Tuple;
+using HT = LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
 
 /**
  * HashJoinExecutor executes hash join operations.
@@ -101,7 +101,8 @@ class HashJoinExecutor : public AbstractExecutor {
    */
   HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan, std::unique_ptr<AbstractExecutor> &&left,
                    std::unique_ptr<AbstractExecutor> &&right)
-      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)) {}
+      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)), jht_("",
+          exec_ctx_->GetBufferPoolManager(), HashComparator(), jht_num_buckets_, HashFunction<hash_t >()){}
 //  jht_("",
 //  exec_ctx_->GetBufferPoolManager(), HashComparator(), )
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
@@ -141,10 +142,9 @@ class HashJoinExecutor : public AbstractExecutor {
       while (right_->Next(r_tuple)) {
         hash_t r_hash_v = HashValues(r_tuple, r_schema_, plan_->GetRightKeys());
         // need to check all left tuples hashed to the same bucket
-        if (jht_.CheckKey(exec_ctx_->GetTransaction(), r_hash_v)) {
-          std::vector<Tuple> temp_v;
-          // get all left tuples
-          jht_.GetValue(exec_ctx_->GetTransaction(), r_hash_v, &temp_v);
+        std::vector<Tuple> temp_v;
+        // get all left tuples
+        if (jht_.GetValue(exec_ctx_->GetTransaction(), r_hash_v, &temp_v)) {
           // need to further check predicate
           // merge tuples for two sides, assume concat right to left
           for (const Tuple &t : temp_v) {
@@ -216,11 +216,12 @@ class HashJoinExecutor : public AbstractExecutor {
   IdentityHashFunction jht_hash_fn_{};
 
   /** The hash table that we are using. */
-  HT jht_;
   /** The number of buckets in the hash table. */
   static constexpr uint32_t jht_num_buckets_ = 2;
   std::unique_ptr<AbstractExecutor> left_, right_;
+  HT jht_;
   const Schema *l_schema_, *r_schema_;
   const AbstractExpression *predicate_;
+
 };
 }  // namespace bustub

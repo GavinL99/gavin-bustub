@@ -500,16 +500,15 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
         bucket_id = (bucket_id + 1) % new_size;
       }
     }
-    // if need to fetch a new content page
     // delete block page
     assert(buffer_pool_manager_->UnpinPage(old_page_id, false));
 //    assert(buffer_pool_manager_->DeletePage(old_page_id) && "delete page!");
+    // this is evil....
     while (!buffer_pool_manager_->DeletePage(old_page_id)) {
       buffer_pool_manager_->UnpinPage(old_page_id, false);
     }
   }
   // cleanup: delete old header and reset
-  //    // LOG_DEBUG("Reset headers...\n");
   header_page_id_ = new_header_page;
   num_buckets_ = new_size;
   num_block_pages_ = new_num_blocks;
