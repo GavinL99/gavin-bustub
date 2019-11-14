@@ -451,7 +451,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
 
   for (size_t i = 0; i < new_num_blocks; ++i) {
     block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr));
-    assert(block_pages[i] != nullptr);
+    assert(block_pages[i]);
     buffer_pool_manager_->FlushPage(allocate_temp_p);
     header_page->AddBlockPageId(allocate_temp_p);
   }

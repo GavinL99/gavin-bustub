@@ -149,7 +149,7 @@ TEST(HashTableTest, ConcurrentInsertTest) {
   auto *disk_manager = new DiskManager("test.db");
   auto *bpm = new BufferPoolManager(100, disk_manager);
 
-  LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 50, HashFunction<int>());
+  LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
   std::thread t1(insert_f, &ht, 0, 5000);
   std::thread t2(insert_f, &ht, 1000, 5000);
   std::thread t3(insert_f, &ht, 2000, 5000);
