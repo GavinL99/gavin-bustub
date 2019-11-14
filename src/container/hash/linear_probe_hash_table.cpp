@@ -205,7 +205,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (switch_page) {
       // crab latch
       if (temp_page != nullptr) {
-        next_latch_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(next_latch_page = buffer_pool_manager_->FetchPage(page_id));
         assert(next_latch_page);
         // LOG_DEBUG("Lock\n");
         temp_page->WUnlatch();
@@ -216,7 +216,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
         temp_page = next_latch_page;
       } else {
 //        // LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
-        temp_page = buffer_pool_manager_->FetchPage(page_id);
+        assert(temp_page = buffer_pool_manager_->FetchPage(page_id));
         assert(temp_page);
 //         LOG_DEBUG("Lock\n");
         temp_page->WLatch();
@@ -267,11 +267,9 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
         block_page->ValueAt(offset) == value) {
       assert(buffer_pool_manager_->UnpinPage(page_id, false));
       temp_page->WUnlatch();
-//      lock_with_set(page_latch_set, temp_page, false, true);
       if (insert_page_id != INVALID_PAGE_ID && insert_page_id != page_id) {
         assert(buffer_pool_manager_->UnpinPage(insert_page_id, false));
         insert_latch_page->WUnlatch();
-//        lock_with_set(page_latch_set, insert_latch_page, false, true);
       }
       // LOG_DEBUG("Duplicated!\n");
       break;
@@ -485,13 +483,13 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
 
       page_id_t tmp_page_id(INVALID_PAGE_ID);
       while (true) {
-        if (tmp_page_id != INVALID_PAGE_ID || tmp_page_id != block_pages[bucket_id / BLOCK_ARRAY_SIZE]) {
+        if (tmp_page_id != INVALID_PAGE_ID && tmp_page_id != block_pages[bucket_id / BLOCK_ARRAY_SIZE]) {
           assert(buffer_pool_manager_->UnpinPage(tmp_page_id, false));
         }
         tmp_page_id = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
         new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
             (tmp_page_id)->GetData());
-        assert(new_block_page);
+        assert(new_block_page && "Fetch new blocks");
         offset = bucket_id % BLOCK_ARRAY_SIZE;
         //          // LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
         if (!new_block_page->IsOccupied(offset)) {
