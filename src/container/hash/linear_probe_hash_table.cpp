@@ -208,8 +208,8 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
         LOG_DEBUG("Lock\n");
-        next_latch_page->WLatch();
         temp_page->WUnlatch();
+        next_latch_page->WLatch();
         LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, true);
 //        lock_with_set(page_latch_set, temp_page, false, true);
@@ -366,8 +366,8 @@ bool HASH_TABLE_TYPE::Remove(Transaction *transaction, const KeyType &key, const
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
-        next_latch_page->WLatch();
         temp_page->WUnlatch();
+        next_latch_page->WLatch();
         temp_page = next_latch_page;
       } else {
         temp_page = buffer_pool_manager_->FetchPage(page_id);
