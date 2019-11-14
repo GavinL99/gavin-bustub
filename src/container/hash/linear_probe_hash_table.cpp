@@ -111,8 +111,8 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
         // LOG_DEBUG("Lock\n");
-        next_latch_page->RLatch();
         temp_page->RUnlatch();
+        next_latch_page->RLatch();
         // LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, false);
 //        lock_with_set(page_latch_set, temp_page, false, false);
@@ -205,7 +205,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (switch_page) {
       // crab latch
       if (temp_page != nullptr) {
-        assert(next_latch_page = buffer_pool_manager_->FetchPage(page_id));
+        next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
         // LOG_DEBUG("Lock\n");
         temp_page->WUnlatch();
@@ -216,7 +216,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
         temp_page = next_latch_page;
       } else {
 //        // LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
-        assert(temp_page = buffer_pool_manager_->FetchPage(page_id));
+        temp_page = buffer_pool_manager_->FetchPage(page_id);
         assert(temp_page);
 //         LOG_DEBUG("Lock\n");
         temp_page->WLatch();
