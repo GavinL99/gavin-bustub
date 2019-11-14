@@ -448,7 +448,6 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     old_page_id = prev_header_page->GetBlockPageId(i);
     block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage(old_page_id));
     assert(block_page);
-    //      LOG_DEBUG("Start Block: %d\n", (int) i);
     // linear probing again
     //      LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
     for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
