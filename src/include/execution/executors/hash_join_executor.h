@@ -82,10 +82,10 @@ class SimpleHashJoinHashTable {
 };
 
 // TODO(student): when you are ready to attempt task 3, replace the using declaration!
-//using HT = SimpleHashJoinHashTable;
-using HashJoinKeyType = hash_t;
-using HashJoinValType = std::vector<Tuple>;
-using HT = LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
+using HT = SimpleHashJoinHashTable;
+//using HashJoinKeyType = hash_t;
+//using HashJoinValType = std::vector<Tuple>;
+//using HT = LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
 
 /**
  * HashJoinExecutor executes hash join operations.
@@ -101,9 +101,9 @@ class HashJoinExecutor : public AbstractExecutor {
    */
   HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan, std::unique_ptr<AbstractExecutor> &&left,
                    std::unique_ptr<AbstractExecutor> &&right)
-      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)), jht_("",
-          exec_ctx_->GetBufferPoolManager(), HashComparator(), ) {}
-
+      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)) {}
+//  jht_("",
+//  exec_ctx_->GetBufferPoolManager(), HashComparator(), )
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
   const HT *GetJHT() const { return &jht_; }
 
