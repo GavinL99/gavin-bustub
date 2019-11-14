@@ -81,10 +81,14 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
   // hash f -> page_id -> block page -> linear probe -> stop till not occupied
   // get the actual data
   std::unordered_set<Page *> page_latch_set;
+  LOG_DEBUG("Lock\n");
   table_latch_.RLock();
+  LOG_DEBUG("Locked\n");
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
   assert(header_page_p);
+  LOG_DEBUG("Lock\n");
   header_page_p->RLatch();
+  LOG_DEBUG("Locked\n");
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
   uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
   uint64_t start_id = bucket_id;
@@ -106,8 +110,10 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
+        LOG_DEBUG("Lock\n");
         next_latch_page->RLatch();
         temp_page->RUnlatch();
+        LOG_DEBUG("Lock\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, false);
 //        lock_with_set(page_latch_set, temp_page, false, false);
         temp_page = next_latch_page;
@@ -167,10 +173,12 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   std::unordered_set<Page *> page_latch_set;
   LOG_DEBUG("Acquire read lock...\n");
   table_latch_.RLock();
+  LOG_DEBUG("Locked\n");
   Page *header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
   assert(header_page_p);
   LOG_DEBUG("Acquire header page lock...\n");
   header_page_p->RLatch();
+  LOG_DEBUG("Locked\n");
 //  lock_with_set(page_latch_set, header_page_p, true, false);
   auto header_page = reinterpret_cast<HashTableHeaderPage *>(header_page_p->GetData());
   uint64_t bucket_id = hash_fn_.GetHash(key) % num_buckets_;
