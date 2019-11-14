@@ -498,6 +498,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
         bucket_id = (bucket_id + 1) % new_size;
         assert(buffer_pool_manager_->UnpinPage(tmp_page_id, false));
       }
+      assert(buffer_pool_manager_->DeletePage(old_page_id) && "delete block!");
     }
     // if need to fetch a new content page
     // delete block page
@@ -512,7 +513,8 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   assert(buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false));
   assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()) && "delete header!");
 //  for (size_t j = 0; j < new_num_blocks; ++j) {
-//    assert(buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true));
+////    assert(buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true));
+////    assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()) && "delete block!");
 //  }
   assert(buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true));
 //  delete[] block_pages;
