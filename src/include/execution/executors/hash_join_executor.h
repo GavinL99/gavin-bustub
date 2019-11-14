@@ -85,6 +85,7 @@ class SimpleHashJoinHashTable {
 //using HT = SimpleHashJoinHashTable;
 using HashJoinKeyType = hash_t;
 using HashJoinValType = Tuple;
+template class LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
 using HT = LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
 
 /**
