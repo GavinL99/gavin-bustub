@@ -304,8 +304,8 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
   }
   // unpin page_id is handled above
   assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
-  //    header_page_p->RUnlatch();
-  lock_with_set(page_latch_set, header_page_p, false, false);
+  header_page_p->RUnlatch();
+//  lock_with_set(page_latch_set, header_page_p, false, false);
   table_latch_.RUnlock();
   LOG_DEBUG("Finished Insert.. \n");
   return insert_flag;
