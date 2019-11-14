@@ -439,7 +439,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   new_header_page = allocate_temp_p = INVALID_PAGE_ID;
   auto prev_header_page =
       reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->FetchPage(header_page_id_)->GetData());
-  assert(prev_header_page);
+  assert(prev_header_page && "get header!");
   // allocate new pages
   auto header_page =
       reinterpret_cast<HashTableHeaderPage *>(buffer_pool_manager_->NewPage(&new_header_page)->GetData());
@@ -447,12 +447,16 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   header_page->SetSize(new_size);
   header_page->SetPageId(new_header_page);
 
-  auto block_pages = new BLOCK_PAGE_TYPE *[new_num_blocks];
+//  auto block_pages = new BLOCK_PAGE_TYPE *[new_num_blocks];
+  std::vector<page_id_t> block_pages;
+  block_pages.reserve(new_num_blocks);
 
   for (size_t i = 0; i < new_num_blocks; ++i) {
-    block_pages[i] = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr));
-    assert(block_pages[i]);
-    buffer_pool_manager_->FlushPage(allocate_temp_p);
+    auto tmp_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->NewPage(&allocate_temp_p, nullptr));
+    assert(tmp_block_page && "new page!");
+    block_pages.push_back(allocate_temp_p);
+    assert(buffer_pool_manager_->FlushPage(allocate_temp_p));
+    assert(buffer_pool_manager_->UnpinPage(allocate_temp_p, false));
     header_page->AddBlockPageId(allocate_temp_p);
   }
   KeyType k_t;
@@ -463,7 +467,7 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   for (size_t i = 0; i < num_block_pages_; ++i) {
     old_page_id = prev_header_page->GetBlockPageId(i);
     block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage(old_page_id));
-    assert(block_page);
+    assert(block_page && "Block fetched!");
     // linear probing again
     //      // LOG_DEBUG("Block: %d\n", (int) sizeof(*block_page));
     for (size_t j = 0; j < BLOCK_ARRAY_SIZE; ++j) {
@@ -478,21 +482,27 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
       // where it should be in the new table
       bucket_id = hash_fn_.GetHash(k_t) % new_size;
 
+      page_id_t tmp_page_id(INVALID_PAGE_ID);
       while (true) {
-        new_block_page = block_pages[bucket_id / BLOCK_ARRAY_SIZE];
+        tmp_page_id = block_pages[bucket_id/BLOCK_ARRAY_SIZE];
+        new_block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(buffer_pool_manager_->FetchPage
+            (tmp_page_id)->GetData());
+        assert(new_block_page);
         offset = bucket_id % BLOCK_ARRAY_SIZE;
         //          // LOG_DEBUG("Bucket: %d\n", (int) bucket_id);
         if (!new_block_page->IsOccupied(offset)) {
-          assert(new_block_page->Insert(offset, k_t, v_t));
+          assert(new_block_page->Insert(offset, k_t, v_t) && "Inserted!");
+          assert(buffer_pool_manager_->UnpinPage(tmp_page_id, true));
           break;
         }
         bucket_id = (bucket_id + 1) % new_size;
+        assert(buffer_pool_manager_->UnpinPage(tmp_page_id, false));
       }
     }
     // if need to fetch a new content page
     // delete block page
     assert(buffer_pool_manager_->UnpinPage(old_page_id, false));
-    assert(buffer_pool_manager_->DeletePage(old_page_id));
+    assert(buffer_pool_manager_->DeletePage(old_page_id) && "delete page!");
   }
   // cleanup: delete old header and reset
   //    // LOG_DEBUG("Reset headers...\n");
@@ -500,12 +510,12 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
   num_buckets_ = new_size;
   num_block_pages_ = new_num_blocks;
   assert(buffer_pool_manager_->UnpinPage(prev_header_page->GetPageId(), false));
-  assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()));
+  assert(buffer_pool_manager_->DeletePage(prev_header_page->GetPageId()) && "delete header!");
   for (size_t j = 0; j < new_num_blocks; ++j) {
     assert(buffer_pool_manager_->UnpinPage(header_page->GetBlockPageId(j), true));
   }
   assert(buffer_pool_manager_->UnpinPage(header_page->GetPageId(), true));
-  delete[] block_pages;
+//  delete[] block_pages;
 }
 
 /*****************************************************************************
