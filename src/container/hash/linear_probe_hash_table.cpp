@@ -205,7 +205,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 //        lock_with_set(page_latch_set, temp_page, false, true);
         temp_page = next_latch_page;
       } else {
-        LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
+//        LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
         temp_page = buffer_pool_manager_->FetchPage(page_id);
         assert(temp_page);
         temp_page->WLatch();
@@ -271,7 +271,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
     if (bucket_id == start_id && insert_page_id == INVALID_PAGE_ID) {
       // need to unpin things here before resize to precent mem leak
       // unlock all latches
-      LOG_DEBUG("Resize Unlocking...\n");
+//      LOG_DEBUG("Resize Unlocking...\n");
       assert(buffer_pool_manager_->UnpinPage(header_page_id_, false));
       assert(buffer_pool_manager_->UnpinPage(page_id, false));
       header_page_p->RUnlatch();
@@ -280,7 +280,7 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 //      lock_with_set(page_latch_set, temp_page, false, true);
       table_latch_.RUnlock();
 
-      LOG_DEBUG("Resize locking...\n");
+//      LOG_DEBUG("Resize locking...\n");
       table_latch_.WLock();
       LOG_DEBUG("Start resizing: %d\n", (int)num_buckets_);
       Resize(num_buckets_);
