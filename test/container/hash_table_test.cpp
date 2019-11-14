@@ -150,11 +150,11 @@ TEST(HashTableTest, ConcurrentInsertTest) {
   auto *bpm = new BufferPoolManager(100, disk_manager);
 
   LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 5, HashFunction<int>());
-  std::thread t1(insert_f, &ht, 0, 3000);
-  std::thread t2(insert_f, &ht, 1000, 3000);
-  std::thread t3(insert_f, &ht, 2000, 3000);
-  std::thread t4(insert_f, &ht, 3000, 3000);
-  std::thread t5(insert_f, &ht, 4000, 3000);
+  std::thread t1(insert_f, &ht, 0, 5000);
+  std::thread t2(insert_f, &ht, 1000, 5000);
+  std::thread t3(insert_f, &ht, 2000, 5000);
+  std::thread t4(insert_f, &ht, 3000, 5000);
+  std::thread t5(insert_f, &ht, 4000, 5000);
   // insert a few values
   t1.join();
   t2.join();
