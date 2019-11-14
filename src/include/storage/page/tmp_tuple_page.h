@@ -41,7 +41,6 @@ class TmpTuplePage : public Page {
       *ptr_to_sz -= (tuple_sz + sizeof(uint32_t));
       out->setPageId(GetTablePageId());
       out->setOffset(*ptr_to_sz);
-      LOG_DEBUG("Insert: %d, %d, %d\n", *ptr_to_sz, tuple_sz, prev_free_sz);
       return true;
     }
     return false;
