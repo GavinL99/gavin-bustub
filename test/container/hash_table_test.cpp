@@ -131,8 +131,8 @@ TEST(HashTableTest, ResizeTest) {
   delete bpm;
 }
 
-void insert_f(LinearProbeHashTable<int, int, IntComparator> *ht, int start_i) {
-  for (int i = 0; i < start_i; i++) {
+void insert_f(LinearProbeHashTable<int, int, IntComparator> *ht, int start_i, int num) {
+  for (int i = start_i; i < num + start_i; i++) {
     // std::cout << "Insert: " << std::this_thread::get_id() << " " << i << "\n" << std::endl;
     LOG_DEBUG("Insert: %d\n", i);
     ht->Insert(nullptr, i, i);
@@ -150,9 +150,9 @@ TEST(HashTableTest, ConcurrentInsertTest) {
   auto *bpm = new BufferPoolManager(100, disk_manager);
 
   LinearProbeHashTable<int, int, IntComparator> ht("blah", bpm, IntComparator(), 50, HashFunction<int>());
-  std::thread t1(insert_f, &ht, 100);
-  std::thread t2(insert_f, &ht, 5000);
-  std::thread t3(insert_f, &ht, 10000);
+  std::thread t1(insert_f, &ht, 0, 5000);
+  std::thread t2(insert_f, &ht, 1000, 5000);
+  std::thread t3(insert_f, &ht, 2000, 5000);
   // insert a few values
   t1.join();
   t2.join();
