@@ -113,7 +113,7 @@ bool HASH_TABLE_TYPE::GetValue(Transaction *transaction, const KeyType &key, std
         LOG_DEBUG("Lock\n");
         next_latch_page->RLatch();
         temp_page->RUnlatch();
-        LOG_DEBUG("Lock\n");
+        LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, false);
 //        lock_with_set(page_latch_set, temp_page, false, false);
         temp_page = next_latch_page;
@@ -207,8 +207,10 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       if (temp_page != nullptr) {
         next_latch_page = buffer_pool_manager_->FetchPage(page_id);
         assert(next_latch_page);
+        LOG_DEBUG("Lock\n");
         next_latch_page->WLatch();
         temp_page->WUnlatch();
+        LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, next_latch_page, true, true);
 //        lock_with_set(page_latch_set, temp_page, false, true);
         temp_page = next_latch_page;
@@ -216,7 +218,9 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
 //        LOG_DEBUG("Fetch first block page... %d\n", (int)page_id);
         temp_page = buffer_pool_manager_->FetchPage(page_id);
         assert(temp_page);
+        LOG_DEBUG("Lock\n");
         temp_page->WLatch();
+        LOG_DEBUG("Locked\n");
 //        lock_with_set(page_latch_set, temp_page, true, true);
       }
       block_page = reinterpret_cast<BLOCK_PAGE_TYPE *>(temp_page->GetData());
@@ -289,12 +293,16 @@ bool HASH_TABLE_TYPE::Insert(Transaction *transaction, const KeyType &key, const
       table_latch_.RUnlock();
 
 //      LOG_DEBUG("Resize locking...\n");
+      LOG_DEBUG("Lock\n");
       table_latch_.WLock();
+      LOG_DEBUG("Locked\n");
       LOG_DEBUG("Start resizing: %d\n", (int)num_buckets_);
       Resize(num_buckets_);
       LOG_DEBUG("Finished resizing: %d\n", (int)num_buckets_);
       table_latch_.WUnlock();
+      LOG_DEBUG("Lock\n");
       table_latch_.RLock();
+      LOG_DEBUG("Locked\n");
       bucket_id = hash_fn_.GetHash(key) % num_buckets_;
       start_id = bucket_id;
       header_page_p = buffer_pool_manager_->FetchPage(header_page_id_);
