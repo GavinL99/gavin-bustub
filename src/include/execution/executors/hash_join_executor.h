@@ -140,6 +140,7 @@ class HashJoinExecutor : public AbstractExecutor {
           assert(bm_->UnpinPage(tmp_tuple_page, true));
         }
         tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->NewPage(&tmp_tuple_page, nullptr));
+        LOG_DEBUG("Insert fetch: %d\n", (int) tmp_tuple_page);
         assert(tmp_page_ptr && "new tmp tuple page!");
         tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
       }
