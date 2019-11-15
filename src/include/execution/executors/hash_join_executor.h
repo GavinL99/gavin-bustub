@@ -109,7 +109,7 @@ class HashJoinExecutor : public AbstractExecutor {
                    std::unique_ptr<AbstractExecutor> &&right)
       : AbstractExecutor(exec_ctx), plan_(plan), bm_(exec_ctx_->GetBufferPoolManager()), left_(std::move(left)),
       right_(std::move(right)), jht_("",
-          bm_, HashComparator(), jht_num_buckets_, HashFunction<hash_t >()){}
+          bm_, HashComparator(), jht_num_buckets_, IdentityHashFunction()){}
 //  jht_("",
 //  exec_ctx_->GetBufferPoolManager(), HashComparator(), )
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
@@ -130,7 +130,6 @@ class HashJoinExecutor : public AbstractExecutor {
       Tuple temp_t;
       Tuple *l_tuple = &temp_t;
       TmpTuple tmp_tuple(INVALID_PAGE_ID, 0);
-
       if (!left_->Next(l_tuple)) {
         break;
       }
