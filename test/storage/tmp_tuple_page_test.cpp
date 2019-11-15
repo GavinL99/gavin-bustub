@@ -58,7 +58,7 @@ TEST(TmpTuplePageTest, BasicTest) {
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 20), 8);
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 16), 123);
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
-  ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 16);
+  ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 20);
 
   Tuple tuple2;
   tuple2.DeserializeFrom(page.GetData() + tmp_tuple.GetOffset());
