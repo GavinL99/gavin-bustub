@@ -29,6 +29,7 @@
 #include "storage/index/hash_comparator.h"
 #include "storage/table/tmp_tuple.h"
 #include "storage/table/tuple.h"
+#include "storage/page/tmp_tuple_page.h"
 
 namespace bustub {
 /**
@@ -84,9 +85,13 @@ class SimpleHashJoinHashTable {
 // TODO(student): when you are ready to attempt task 3, replace the using declaration!
 //using HT = SimpleHashJoinHashTable;
 using HashJoinKeyType = hash_t;
-using HashJoinValType = Tuple;
-template class LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
+using HashJoinValType = TmpTuple;
 using HT = LinearProbeHashTable<HashJoinKeyType, HashJoinValType, HashComparator>;
+
+// IF use Linear Hash table:
+// 1. Construct table: Insert tuple in left child into tmp_page, get tmp_page_tuple, and insert (left_hash,
+// tmp_page_tuple) into linear table (so no duplicate!)
+// 2. Next: for each right tuple, get right hash and find the tmp_page_tuple, retrieve the real tuple and proceed
 
 /**
  * HashJoinExecutor executes hash join operations.
@@ -102,8 +107,9 @@ class HashJoinExecutor : public AbstractExecutor {
    */
   HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlanNode *plan, std::unique_ptr<AbstractExecutor> &&left,
                    std::unique_ptr<AbstractExecutor> &&right)
-      : AbstractExecutor(exec_ctx), plan_(plan), left_(std::move(left)), right_(std::move(right)), jht_("",
-          exec_ctx_->GetBufferPoolManager(), HashComparator(), jht_num_buckets_, HashFunction<hash_t >()){}
+      : AbstractExecutor(exec_ctx), plan_(plan), bm_(exec_ctx_->GetBufferPoolManager()), left_(std::move(left)),
+      right_(std::move(right)), jht_("",
+          bm_, HashComparator(), jht_num_buckets_, HashFunction<hash_t >()){}
 //  jht_("",
 //  exec_ctx_->GetBufferPoolManager(), HashComparator(), )
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
@@ -117,6 +123,8 @@ class HashJoinExecutor : public AbstractExecutor {
     predicate_ = plan_->Predicate();
     l_schema_ = left_->GetOutputSchema();
     r_schema_ = right_->GetOutputSchema();
+    page_id_t tmp_tuple_page(INVALID_PAGE_ID);
+    TmpTuplePage *tmp_page_ptr(nullptr);
     // build hash table using left table
     while (true) {
       Tuple temp_t;
@@ -125,7 +133,19 @@ class HashJoinExecutor : public AbstractExecutor {
         break;
       }
       hash_t l_hash_v = HashValues(l_tuple, l_schema_, plan_->GetLeftKeys());
-      jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, *l_tuple);
+      TmpTuple tmp_tuple(INVALID_PAGE_ID, 0);
+
+      // may need to allocate a new table
+      if (tmp_tuple_page == INVALID_PAGE_ID || !tmp_page_ptr->Insert(*l_tuple, &tmp_tuple)) {
+        if (tmp_tuple_page != INVALID_PAGE_ID) {
+          assert(bm_->UnpinPage(tmp_tuple_page, true));
+        }
+        tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->NewPage(&tmp_tuple_page, nullptr));
+        assert(tmp_page_ptr && "new tmp tuple page!");
+        assert(bm_->FlushPage(tmp_tuple_page, nullptr));
+        tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
+      }
+      assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
     }
     LOG_DEBUG("Finish building HT!\n");
   }
@@ -143,12 +163,17 @@ class HashJoinExecutor : public AbstractExecutor {
       while (right_->Next(r_tuple)) {
         hash_t r_hash_v = HashValues(r_tuple, r_schema_, plan_->GetRightKeys());
         // need to check all left tuples hashed to the same bucket
-        std::vector<Tuple> temp_v;
+        std::vector<TmpTuple> temp_v;
         // get all left tuples
         if (jht_.GetValue(exec_ctx_->GetTransaction(), r_hash_v, &temp_v)) {
           // need to further check predicate
           // merge tuples for two sides, assume concat right to left
-          for (const Tuple &t : temp_v) {
+          for (const TmpTuple &tmp_tuple : temp_v) {
+            // get tmp_page and read the real tuple
+            auto tmp_page_ptr = bm_->FetchPage(tmp_tuple.GetPageId());
+            assert(tmp_page_ptr);
+            Tuple t;
+            t.DeserializeFrom(tmp_page_ptr->GetData() + tmp_tuple.GetOffset());
             if (predicate_ == nullptr || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
               //              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
@@ -162,6 +187,7 @@ class HashJoinExecutor : public AbstractExecutor {
               merged_tuple_vec_.emplace_back(Tuple(temp_merged_v, plan_->OutputSchema()));
               //              LOG_DEBUG("Finished merging...\n");
             }
+            bm_->UnpinPage(tmp_tuple.GetPageId(), false);
           }
           // if have matched something
           if (!merged_tuple_vec_.empty()) {
@@ -211,6 +237,7 @@ class HashJoinExecutor : public AbstractExecutor {
  private:
   /** The hash join plan node. */
   const HashJoinPlanNode *plan_;
+  BufferPoolManager *bm_;
   /** The comparator is used to compare hashes. */
   [[maybe_unused]] HashComparator jht_comp_{};
   /** The identity hash function. */
@@ -225,4 +252,6 @@ class HashJoinExecutor : public AbstractExecutor {
   const AbstractExpression *predicate_;
 
 };
+
 }  // namespace bustub
+

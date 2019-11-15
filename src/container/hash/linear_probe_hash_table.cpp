@@ -16,9 +16,12 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <include/common/util/hash_util.h>
 #include "cassert"
 #include "common/logger.h"
 #include "common/rid.h"
+#include "storage/index/hash_comparator.h"
+#include "storage/table/tmp_tuple.h"
 
 namespace bustub {
 #define MAX_NUM_BLOCK_PAGES 1020
@@ -461,8 +464,6 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
     assert(buffer_pool_manager_->UnpinPage(allocate_temp_p, true));
     header_page->AddBlockPageId(allocate_temp_p);
   }
-  KeyType k_t;
-  ValueType v_t;
 
   // move content: need to do linear probing...
   slot_offset_t offset(0);
@@ -476,8 +477,8 @@ void HASH_TABLE_TYPE::Resize(size_t initial_size) {
       if (!block_page->IsReadable(j)) {
         continue;
       }
-      k_t = block_page->KeyAt(j);
-      v_t = block_page->ValueAt(j);
+      auto k_t = block_page->KeyAt(j);
+      auto v_t = block_page->ValueAt(j);
       // where it should be in the new table
       bucket_id = hash_fn_.GetHash(k_t) % new_size;
 
@@ -524,6 +525,9 @@ template <typename KeyType, typename ValueType, typename KeyComparator>
 size_t HASH_TABLE_TYPE::GetSize() {
   return num_buckets_;
 }
+
+// Explicit Template Instantiation
+template class LinearProbeHashTable<hash_t, TmpTuple, HashComparator>;
 
 template class LinearProbeHashTable<int, int, IntComparator>;
 
