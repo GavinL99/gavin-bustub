@@ -63,6 +63,7 @@ TEST(TmpTuplePageTest, BasicTest) {
   Tuple tuple2;
   tuple2.DeserializeFrom(page.GetData() + tmp_tuple.GetOffset());
   ASSERT_EQ(tuple2.GetLength(), 4);
+  ASSERT_EQ(tuple2.GetValue(&schema1, 0).GetAs<int>(), 123);
 }
 
 }  // namespace bustub
