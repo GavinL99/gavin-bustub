@@ -146,10 +146,9 @@ class HashJoinExecutor : public AbstractExecutor {
       tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
       assert(tmp_page_ptr->Insert(*l_tuple, &tmp_tuple));
       assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
-
-      LOG_DEBUG("Insert fetch: %d\n", (int) tmp_tuple_page);
-      LOG_DEBUG("Insert: %d, %d\n", (int) tmp_tuple.GetPageId(),
-                (int) tmp_tuple.GetOffset());
+//      LOG_DEBUG("Insert fetch: %d\n", (int) tmp_tuple_page);
+//      LOG_DEBUG("Insert: %d, %d\n", (int) tmp_tuple.GetPageId(),
+//                (int) tmp_tuple.GetOffset());
     }
     assert(bm_->UnpinPage(tmp_tuple_page, true));
     LOG_DEBUG("Finish building HT!\n");
@@ -175,12 +174,12 @@ class HashJoinExecutor : public AbstractExecutor {
           // merge tuples for two sides, assume concat right to left
           for (const TmpTuple &tmp_tuple : temp_v) {
             // get tmp_page and read the real tuple
-            LOG_DEBUG("Fetch: %d, %d\n", tmp_tuple.GetPageId(), (int) tmp_tuple.GetOffset());
+//            LOG_DEBUG("Fetch: %d, %d\n", tmp_tuple.GetPageId(), (int) tmp_tuple.GetOffset());
             auto tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->FetchPage(tmp_tuple.GetPageId()));
             assert(tmp_page_ptr);
             Tuple t;
             t.DeserializeFrom(tmp_page_ptr->GetData() + tmp_tuple.GetOffset());
-            LOG_DEBUG("Deserialized...\n");
+//            LOG_DEBUG("Deserialized...\n");
             if (predicate_ == nullptr || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
               //              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
