@@ -143,7 +143,8 @@ class HashJoinExecutor : public AbstractExecutor {
         assert(tmp_page_ptr && "new tmp tuple page!");
         tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
       }
-      LOG_DEBUG("Insert: %d\n", (int) l_tuple->GetRid().Get());
+      LOG_DEBUG("Insert: %d, %d\n", (int) tmp_tuple.GetPageId(),
+                (int) tmp_tuple.GetOffset());
       assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
     }
     assert(bm_->UnpinPage(tmp_tuple_page, true));
