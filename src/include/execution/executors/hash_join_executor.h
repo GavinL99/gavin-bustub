@@ -145,6 +145,7 @@ class HashJoinExecutor : public AbstractExecutor {
         assert(bm_->FlushPage(tmp_tuple_page, nullptr));
         tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
       }
+      LOG_DEBUG("Insert: %d\n", l_tuple->GetRid().Get());
       assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
     }
     LOG_DEBUG("Finish building HT!\n");
