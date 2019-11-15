@@ -59,6 +59,10 @@ TEST(TmpTuplePageTest, BasicTest) {
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 12), 123);
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
   ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 16);
+
+  Tuple tuple2;
+  tuple2.DeserializeFrom(page.GetData() + tmp_tuple.GetOffset());
+  ASSERT_EQ(tuple2.GetLength(), 4);
 }
 
 }  // namespace bustub
