@@ -141,7 +141,8 @@ class HashJoinExecutor : public AbstractExecutor {
         }
         tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->NewPage(&tmp_tuple_page, nullptr));
         assert(tmp_page_ptr && "new tmp tuple page!");
-        assert(bm_->FlushPage(tmp_tuple_page, nullptr));
+//        assert(bm_->FlushPage(tmp_tuple_page, nullptr));
+        assert(bm_->UnpinPage(tmp_tuple_page, true));
         tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
       }
       LOG_DEBUG("Insert: %d\n", (int) l_tuple->GetRid().Get());
