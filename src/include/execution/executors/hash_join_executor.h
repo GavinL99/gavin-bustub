@@ -109,7 +109,7 @@ class HashJoinExecutor : public AbstractExecutor {
                    std::unique_ptr<AbstractExecutor> &&right)
       : AbstractExecutor(exec_ctx), plan_(plan), bm_(exec_ctx_->GetBufferPoolManager()), left_(std::move(left)),
       right_(std::move(right)), jht_("",
-          bm_, HashComparator(), jht_num_buckets_, IdentityHashFunction()){}
+          bm_, HashComparator(), jht_num_buckets_, HashFunction<hash_t>()){}
 //  jht_("",
 //  exec_ctx_->GetBufferPoolManager(), HashComparator(), )
   /** @return the JHT in use. Do not modify this function, otherwise you will get a zero. */
@@ -246,7 +246,7 @@ class HashJoinExecutor : public AbstractExecutor {
 
   /** The hash table that we are using. */
   /** The number of buckets in the hash table. */
-  static constexpr uint32_t jht_num_buckets_ = 2;
+  static constexpr uint32_t jht_num_buckets_ = 10;
   std::unique_ptr<AbstractExecutor> left_, right_;
   HT jht_;
   const Schema *l_schema_, *r_schema_;
