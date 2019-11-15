@@ -10,10 +10,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <include/storage/index/hash_comparator.h>
 #include "storage/page/hash_table_block_page.h"
 #include "cassert"
 #include "storage/index/generic_key.h"
+#include <include/storage/index/hash_comparator.h>
 
 namespace bustub {
 

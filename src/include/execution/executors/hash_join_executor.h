@@ -138,7 +138,9 @@ class HashJoinExecutor : public AbstractExecutor {
       if (tmp_tuple_page != INVALID_PAGE_ID && tmp_page_ptr->Insert(*l_tuple, &tmp_tuple)) {
         assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
         continue;
-      } else if (tmp_tuple_page != INVALID_PAGE_ID) {
+      }
+      // if switch to a new page
+      if (tmp_tuple_page != INVALID_PAGE_ID) {
         assert(bm_->UnpinPage(tmp_tuple_page, true));
       }
       tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->NewPage(&tmp_tuple_page, nullptr));
