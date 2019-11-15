@@ -47,7 +47,7 @@ TEST(TmpTuplePageTest, BasicTest) {
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 8), 4);
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 4), 123);
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
-//  ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE);
+  ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 8);
 
   columns.emplace_back("B", TypeId::INTEGER);
   Schema schema1(columns);
@@ -58,7 +58,7 @@ TEST(TmpTuplePageTest, BasicTest) {
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 16), 4);
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 12), 123);
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
-//  ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 8);
+  ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 16);
 }
 
 }  // namespace bustub
