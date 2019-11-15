@@ -22,7 +22,7 @@ namespace bustub {
 class TmpTuplePage : public Page {
  public:
   void Init(page_id_t page_id, uint32_t page_size) {
-    LOG_DEBUG("Init: %d\n", page_size);
+//    LOG_DEBUG("Init: %d\n", page_size);
     memcpy(GetData(), &page_id, sizeof(page_id));
     memcpy(GetData() + OFFSET_FREE_SPACE, &page_size, sizeof(uint32_t));
   }

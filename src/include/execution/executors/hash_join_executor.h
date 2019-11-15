@@ -129,13 +129,13 @@ class HashJoinExecutor : public AbstractExecutor {
     while (true) {
       Tuple temp_t;
       Tuple *l_tuple = &temp_t;
+      TmpTuple tmp_tuple(INVALID_PAGE_ID, 0);
+
       if (!left_->Next(l_tuple)) {
         break;
       }
       hash_t l_hash_v = HashValues(l_tuple, l_schema_, plan_->GetLeftKeys());
-      TmpTuple tmp_tuple(INVALID_PAGE_ID, 0);
-
-      // may need to allocate a new table
+      // may need to allocate a new page
       if (tmp_tuple_page == INVALID_PAGE_ID || !tmp_page_ptr->Insert(*l_tuple, &tmp_tuple)) {
         if (tmp_tuple_page != INVALID_PAGE_ID) {
           assert(bm_->UnpinPage(tmp_tuple_page, true));
@@ -171,10 +171,11 @@ class HashJoinExecutor : public AbstractExecutor {
           // merge tuples for two sides, assume concat right to left
           for (const TmpTuple &tmp_tuple : temp_v) {
             // get tmp_page and read the real tuple
-            auto tmp_page_ptr = bm_->FetchPage(tmp_tuple.GetPageId());
+            auto tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->FetchPage(tmp_tuple.GetPageId()));
             assert(tmp_page_ptr);
             Tuple t;
             t.DeserializeFrom(tmp_page_ptr->GetData() + tmp_tuple.GetOffset());
+            LOG_DEBUG("Deserialized...\n");
             if (predicate_ == nullptr || predicate_->EvaluateJoin(&t, l_schema_, r_tuple, r_schema_).GetAs<bool>()) {
               //              LOG_DEBUG("Start merging...\n");
               std::vector<Value> temp_merged_v;
