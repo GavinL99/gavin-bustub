@@ -19,6 +19,8 @@
 #include "common/config.h"
 #include "storage/index/int_comparator.h"
 #include "storage/page/hash_table_page_defs.h"
+#include "storage/table/tmp_tuple.h"
+#include "common/util/hash_util.h"
 
 namespace bustub {
 /**

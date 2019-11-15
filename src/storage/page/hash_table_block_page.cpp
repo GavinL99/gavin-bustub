@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <include/storage/index/hash_comparator.h>
 #include "storage/page/hash_table_block_page.h"
 #include "cassert"
 #include "storage/index/generic_key.h"
@@ -74,6 +75,7 @@ bool HASH_TABLE_BLOCK_TYPE::IsReadable(slot_offset_t bucket_ind) const {
 
 // DO NOT REMOVE ANYTHING BELOW THIS LINE
 template class HashTableBlockPage<int, int, IntComparator>;
+template class HashTableBlockPage<hash_t, TmpTuple, HashComparator>;
 template class HashTableBlockPage<GenericKey<4>, RID, GenericComparator<4>>;
 template class HashTableBlockPage<GenericKey<8>, RID, GenericComparator<8>>;
 template class HashTableBlockPage<GenericKey<16>, RID, GenericComparator<16>>;
