@@ -170,6 +170,7 @@ class HashJoinExecutor : public AbstractExecutor {
           // merge tuples for two sides, assume concat right to left
           for (const TmpTuple &tmp_tuple : temp_v) {
             // get tmp_page and read the real tuple
+            LOG_DEBUG("Fetch: %d\n", tmp_tuple.GetPageId());
             auto tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->FetchPage(tmp_tuple.GetPageId()));
             assert(tmp_page_ptr);
             Tuple t;
