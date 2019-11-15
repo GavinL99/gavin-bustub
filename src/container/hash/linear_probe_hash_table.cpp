@@ -20,11 +20,16 @@
 #include "cassert"
 #include "common/logger.h"
 #include "common/rid.h"
-#include "storage/index/hash_comparator.h"
+//#include "storage/index/hash_comparator.h"
 #include "storage/table/tmp_tuple.h"
 
 namespace bustub {
 #define MAX_NUM_BLOCK_PAGES 1020
+
+class HashComparator {
+public:
+  inline int operator()(const hash_t lhs, const hash_t rhs) { return lhs < rhs ? -1 : (lhs > rhs ? 1 : 0); }
+};
 
 //void lock_with_set(std::unordered_set<Page *> page_set, Page *ptr, bool if_lock, bool if_write) {
 //  if (if_lock) {
