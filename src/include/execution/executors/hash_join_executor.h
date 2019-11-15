@@ -134,19 +134,22 @@ class HashJoinExecutor : public AbstractExecutor {
         break;
       }
       hash_t l_hash_v = HashValues(l_tuple, l_schema_, plan_->GetLeftKeys());
-      // may need to allocate a new page
-      if (tmp_tuple_page == INVALID_PAGE_ID || !tmp_page_ptr->Insert(*l_tuple, &tmp_tuple)) {
-        if (tmp_tuple_page != INVALID_PAGE_ID) {
-          assert(bm_->UnpinPage(tmp_tuple_page, true));
-        }
-        tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->NewPage(&tmp_tuple_page, nullptr));
-        LOG_DEBUG("Insert fetch: %d\n", (int) tmp_tuple_page);
-        assert(tmp_page_ptr && "new tmp tuple page!");
-        tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
+      // no need to allocate a new page
+      if (tmp_tuple_page != INVALID_PAGE_ID && tmp_page_ptr->Insert(*l_tuple, &tmp_tuple)) {
+        assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
+        continue;
+      } else if (tmp_tuple_page != INVALID_PAGE_ID) {
+        assert(bm_->UnpinPage(tmp_tuple_page, true));
       }
+      tmp_page_ptr = reinterpret_cast<TmpTuplePage *>(bm_->NewPage(&tmp_tuple_page, nullptr));
+      assert(tmp_page_ptr && "new tmp tuple page!");
+      tmp_page_ptr->Init(tmp_tuple_page, PAGE_SIZE);
+      assert(tmp_page_ptr->Insert(*l_tuple, &tmp_tuple));
+      assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
+
+      LOG_DEBUG("Insert fetch: %d\n", (int) tmp_tuple_page);
       LOG_DEBUG("Insert: %d, %d\n", (int) tmp_tuple.GetPageId(),
                 (int) tmp_tuple.GetOffset());
-      assert(jht_.Insert(exec_ctx_->GetTransaction(), l_hash_v, tmp_tuple));
     }
     assert(bm_->UnpinPage(tmp_tuple_page, true));
     LOG_DEBUG("Finish building HT!\n");
