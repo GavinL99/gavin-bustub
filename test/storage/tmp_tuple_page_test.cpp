@@ -55,14 +55,14 @@ TEST(TmpTuplePageTest, BasicTest) {
   Tuple tuple1(values, &schema1);
   page.Insert(tuple1, &tmp_tuple);
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + sizeof(page_id_t) + sizeof(lsn_t)), PAGE_SIZE - 20);
-  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 20), 4);
+  ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 20), 8);
   ASSERT_EQ(*reinterpret_cast<uint32_t *>(data + PAGE_SIZE - 16), 123);
   ASSERT_EQ(tmp_tuple.GetPageId(), page_id);
   ASSERT_EQ(tmp_tuple.GetOffset(), PAGE_SIZE - 16);
 
   Tuple tuple2;
   tuple2.DeserializeFrom(page.GetData() + tmp_tuple.GetOffset());
-  ASSERT_EQ(tuple2.GetLength(), 4);
+  ASSERT_EQ(tuple2.GetLength(), 8);
   ASSERT_EQ(tuple2.GetValue(&schema1, 0).GetAs<int>(), 123);
   ASSERT_EQ(tuple2.GetValue(&schema1, 1).GetAs<int>(), 456);
 }
