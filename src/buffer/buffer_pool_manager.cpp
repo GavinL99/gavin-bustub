@@ -53,12 +53,8 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     // s.t. this page will not be victimized
     temp_page = pages_ + frame_idx;
     replacer_->Pin(frame_idx);
-    // get write lock to update pin
-    // temp_page->WLatch();
     IncremPin(temp_page);
     latch_.unlock();
-    // temp_page->WUnlatch();
-
   } else if (!free_list_.empty()) {
     // if have free pages
     frame_idx = free_list_.front();
@@ -66,13 +62,10 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     page_table_[page_id] = frame_idx;
     temp_page = pages_ + frame_idx;
     replacer_->Pin(frame_idx);
-    // temp_page->WLatch();
     // reset memory and update meta data
     ResetPage(temp_page, page_id);
     disk_manager_->ReadPage(page_id, temp_page->data_);
     latch_.unlock();
-    // temp_page->WUnlatch();
-
   } else {
     // if nothing to evict
     if (!replacer_->Victim(&frame_idx)) {
@@ -83,15 +76,18 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     temp_page = pages_ + frame_idx;
     page_table_.erase(old_page_id);
     page_table_[page_id] = frame_idx;
-    // temp_page->WLatch();
     if (temp_page->IsDirty()) {
+      // force flush up to page_lsn
+      if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        log_manager_->TriggerFlush();
+        assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
+      }
       disk_manager_->WritePage(old_page_id, temp_page->data_);
     }
     ResetPage(temp_page, page_id);
     disk_manager_->ReadPage(page_id, temp_page->data_);
     replacer_->Pin(frame_idx);
     latch_.unlock();
-    // temp_page->WUnlatch();
   }
   return temp_page;
 }
@@ -112,7 +108,6 @@ bool BufferPoolManager::UnpinPageImpl(page_id_t page_id, bool is_dirty) {
   if (page_table_.find(page_id) != page_table_.end()) {
     frame_idx = page_table_[page_id];
     temp_page = pages_ + frame_idx;
-    // temp_page->WLatch();
     if (temp_page->GetPinCount() == 0) {
       latch_.unlock();
       return false;
@@ -139,8 +134,11 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
     // update page_table, free_list
     frame_idx = page_table_[page_id];
     temp_page = pages_ + frame_idx;
-    // temp_page->WLatch();
     if (temp_page->IsDirty()) {
+      if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        log_manager_->TriggerFlush();
+        assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
+      }
       disk_manager_->WritePage(page_id, temp_page->data_);
     }
     // not dirty anymore...
@@ -171,12 +169,9 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
     *page_id = disk_manager_->AllocatePage();
     page_table_[*page_id] = frame_idx;
     temp_page = pages_ + frame_idx;
-    // temp_page->WLatch();
     // reset memory and update meta data
     ResetPage(temp_page, *page_id);
     latch_.unlock();
-    // temp_page->WUnlatch();
-
   } else {
     // if nothing to evict
     if (!replacer_->Victim(&frame_idx)) {
@@ -188,13 +183,15 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
     temp_page = pages_ + frame_idx;
     page_table_.erase(old_page_id);
     page_table_[*page_id] = frame_idx;
-    // temp_page->WLatch();
     if (temp_page->IsDirty()) {
+      if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        log_manager_->TriggerFlush();
+        assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
+      }
       disk_manager_->WritePage(old_page_id, temp_page->data_);
     }
     ResetPage(temp_page, *page_id);
     latch_.unlock();
-    // temp_page->WUnlatch();
   }
   return temp_page;
 }
@@ -221,8 +218,11 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
     page_table_.erase(page_id);
     // tell replacer don't try to evict this frame
     replacer_->Pin(frame_idx);
-    // temp_page->WLatch();
     if (temp_page->IsDirty()) {
+      if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        log_manager_->TriggerFlush();
+        assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
+      }
       disk_manager_->WritePage(page_id, temp_page->data_);
     }
     ResetPage(temp_page, INVALID_PAGE_ID);

@@ -29,7 +29,7 @@ namespace bustub {
 class LogManager {
  public:
   explicit LogManager(DiskManager *disk_manager)
-      : next_lsn_(0), persistent_lsn_(INVALID_LSN), disk_manager_(disk_manager) {
+      : next_lsn_(0), persistent_lsn_(INVALID_LSN), disk_manager_(disk_manager), buffer_used_(0) {
     log_buffer_ = new char[LOG_BUFFER_SIZE];
     flush_buffer_ = new char[LOG_BUFFER_SIZE];
   }
@@ -41,8 +41,11 @@ class LogManager {
     flush_buffer_ = nullptr;
   }
 
+
   void RunFlushThread();
   void StopFlushThread();
+  // this is called by bpm if need to evict a dirty page
+  void TriggerFlush();
 
   lsn_t AppendLogRecord(LogRecord *log_record);
 
@@ -52,23 +55,40 @@ class LogManager {
   inline char *GetLogBuffer() { return log_buffer_; }
 
  private:
+  typedef std::unique_lock<std::mutex> uniq_lock;
+
   // TODO(students): you may add your own member variables
+
+  // irrelavant to timeout; only set to ready if:
+  // buffer is full or dirty page is evicted
+//  volatile bool flush_trigger_;
+
+  // helper function for async flush, will wait on flush_cv_
+  // if time out or if woke up by other threads
+  void flush_helper();
 
   /** The atomic counter which records the next log sequence number. */
   std::atomic<lsn_t> next_lsn_;
   /** The log records before and including the persistent lsn have been written to disk. */
   std::atomic<lsn_t> persistent_lsn_;
 
+  // need to swap when flushing
   char *log_buffer_;
   char *flush_buffer_;
 
+  // protect buffers (swap and write)
   std::mutex latch_;
 
   std::thread *flush_thread_ __attribute__((__unused__));
 
-  std::condition_variable cv_;
+  std::condition_variable flush_cv_;
 
   DiskManager *disk_manager_ __attribute__((__unused__));
-};
+
+  // size used
+  std::atomic<int> buffer_used_;
+  std::atomic<int> flush_sz_;
+
+  };
 
 }  // namespace bustub

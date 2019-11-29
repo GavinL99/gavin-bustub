@@ -53,7 +53,6 @@ class ClockReplacer : public Replacer {
   size_t Size() override;
 
  private:
-  // TODO(student): implement me!
   frame_id_t clock_hand_;
   const frame_id_t capacity_;
   size_t evict_size_;

@@ -34,7 +34,8 @@ TEST(RecoveryTest, DISABLED_RedoTest) {
   BustubInstance *bustub_instance = new BustubInstance("test.db");
 
   ASSERT_FALSE(enable_logging);
-  LOG_INFO("Skip system recovering...");
+  LOG_INFO("Skip"
+           " system recovering...");
 
   bustub_instance->log_manager_->RunFlushThread();
   ASSERT_TRUE(enable_logging);
