@@ -38,13 +38,14 @@ void LogManager::flush_helper() {
     flush_cv_.wait_for(lock, log_timeout,
         [=] {return !enable_logging || disk_manager_->HasFlushLogFuture();});    //
     // if timeout, need to swap and set persistent_lsn_
-    LOG_INFO("Flush helper woke up...\n");
     if (!disk_manager_->HasFlushLogFuture()) {
       LOG_INFO("Flush helper swapping buffers...\n");
       char *temp = log_buffer_;
       log_buffer_ = flush_buffer_;
       flush_buffer_ = temp;
       persistent_lsn_ = next_lsn_ - 1;
+    } else {
+      LOG_INFO("Flush helper timeout...\n");
     }
     disk_manager_->WriteLog(flush_buffer_, flush_sz_);
     LOG_INFO("Flush helper wrote to disk...\n");
