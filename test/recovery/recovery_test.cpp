@@ -74,6 +74,7 @@ TEST(RecoveryTest, FlushLogTest) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+    bustub_instance->transaction_manager_->Commit(txn);
 
 //    bustub_instance->transaction_manager_->Commit(txn1);
     delete txn;

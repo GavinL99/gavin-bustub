@@ -24,6 +24,7 @@ namespace bustub {
  */
 void LogManager::RunFlushThread() {
   enable_logging = true;
+  buffer_used_ = 0;
   flush_thread_ = new std::thread([=] {flush_helper();});
 }
 
@@ -39,16 +40,21 @@ void LogManager::flush_helper() {
         [=] {return !enable_logging || disk_manager_->HasFlushLogFuture();});    //
     // if timeout, need to swap and set persistent_lsn_
     if (!disk_manager_->HasFlushLogFuture()) {
-      LOG_INFO("Flush helper swapping buffers...\n");
-      char *temp = log_buffer_;
-      log_buffer_ = flush_buffer_;
-      flush_buffer_ = temp;
-      persistent_lsn_ = next_lsn_ - 1;
-    } else {
       LOG_INFO("Flush helper timeout...\n");
+      if (buffer_used_ > 0) {
+        char *temp = log_buffer_;
+        log_buffer_ = flush_buffer_;
+        flush_buffer_ = temp;
+        persistent_lsn_ = next_lsn_ - 1;
+      } else {
+        LOG_INFO("No log to flush...\n");
+        continue;
+      }
     }
-    disk_manager_->WriteLog(flush_buffer_, flush_sz_);
-    LOG_INFO("Flush helper wrote to disk...\n");
+    int gg = buffer_used_;
+    LOG_INFO("Flush helper wrote to disk: %d\n", gg);
+    disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+    buffer_used_ = 0;
   }
 }
 
@@ -59,11 +65,12 @@ void LogManager::flush_helper() {
 void LogManager::TriggerFlush() {
   uniq_lock lock(latch_);
   // flush log buffer and then swap!
-  disk_manager_->WriteLog(log_buffer_, flush_sz_);
+  disk_manager_->WriteLog(log_buffer_, buffer_used_);
   char *temp = log_buffer_;
   log_buffer_ = flush_buffer_;
   flush_buffer_ = temp;
   persistent_lsn_ = next_lsn_ - 1;
+  buffer_used_ = 0;
 }
 
 
@@ -115,6 +122,10 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
       bustub::LOG_DEBUG("Flush size: %d\n", temp_sz);
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+      char *temp = log_buffer_;
+      log_buffer_ = flush_buffer_;
+      flush_buffer_ = temp;
+      persistent_lsn_ = next_lsn_ - 1;
     });
     disk_manager_->SetFlushLogFuture(&fut);
     flush_cv_.notify_one();

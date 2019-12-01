@@ -87,7 +87,6 @@ class LogManager {
 
   // size used
   std::atomic<int> buffer_used_;
-  std::atomic<int> flush_sz_;
 
   };
 
