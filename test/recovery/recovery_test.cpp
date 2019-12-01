@@ -75,6 +75,7 @@ TEST(RecoveryTest, FlushLogTest) {
     LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
     bustub_instance->transaction_manager_->Commit(txn);
+    bustub_instance->log_manager_->StopFlushThread();
 
 //    bustub_instance->transaction_manager_->Commit(txn1);
     delete txn;

@@ -78,6 +78,7 @@ void LogManager::TriggerFlush() {
  * Stop and join the flush thread, set enable_logging = false
  */
 void LogManager::StopFlushThread() {
+  LOG_INFO("Stop flush thread...\n");
   enable_logging = false;
   flush_thread_->join();
 }
