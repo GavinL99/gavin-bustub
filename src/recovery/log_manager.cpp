@@ -144,6 +144,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     default:
       break;
   }
+  return log_record->lsn_;
 }
 
 }  // namespace bustub
