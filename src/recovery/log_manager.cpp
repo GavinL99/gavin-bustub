@@ -162,6 +162,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     default:
       break;
   }
+  buffer_used_ += log_record->size_;
   return log_record->lsn_;
 }
 
