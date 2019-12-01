@@ -81,6 +81,7 @@ void LogManager::StopFlushThread() {
   LOG_INFO("Stop flush thread...\n");
   enable_logging = false;
   flush_thread_->join();
+  delete flush_thread_;
 }
 
 /*
