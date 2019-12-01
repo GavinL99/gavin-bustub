@@ -83,6 +83,7 @@ TEST(RecoveryTest, FlushLogTest) {
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
 //    bustub_instance->transaction_manager_->Commit(txn1);
+    bustub_instance->log_manager_->StopFlushThread();
     delete txn;
     delete test_table;
     delete bustub_instance;
