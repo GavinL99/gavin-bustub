@@ -43,7 +43,14 @@ TEST(RecoveryTest, FlushLogTest) {
     Transaction *txn = bustub_instance->transaction_manager_->Begin();
     auto *test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
                                      bustub_instance->log_manager_, txn);
+
+    bustub_instance->log_manager_->TriggerFlush();
+    LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+
     bustub_instance->transaction_manager_->Commit(txn);
+    bustub_instance->log_manager_->TriggerFlush();
+    LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+
 
 //    Column col1{"a", TypeId::VARCHAR, 20};
 //    Column col2{"b", TypeId::SMALLINT};
@@ -55,7 +62,7 @@ TEST(RecoveryTest, FlushLogTest) {
 //    auto val_1 = tuple.GetValue(&schema, 1);
 
     // set log time out very high so that flush doesn't happen before checkpoint is performed
-    log_timeout = std::chrono::seconds(1);
+    log_timeout = std::chrono::seconds(15);
 
     // insert a ton of tuples
 //    Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
@@ -74,7 +81,6 @@ TEST(RecoveryTest, FlushLogTest) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
-    bustub_instance->log_manager_->StopFlushThread();
 
 //    bustub_instance->transaction_manager_->Commit(txn1);
     delete txn;

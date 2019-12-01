@@ -39,6 +39,9 @@ class LogManager {
     delete[] flush_buffer_;
     log_buffer_ = nullptr;
     flush_buffer_ = nullptr;
+    if (flush_thread_ != nullptr) {
+      StopFlushThread();
+    }
   }
 
 

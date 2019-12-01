@@ -63,13 +63,14 @@ void LogManager::flush_helper() {
  * force flush, so can flush first and then swap buffers
  */
 void LogManager::TriggerFlush() {
+  LOG_INFO("Trigger force flush!\n");
   uniq_lock lock(latch_);
   // flush log buffer and then swap!
-  disk_manager_->WriteLog(log_buffer_, buffer_used_);
   char *temp = log_buffer_;
   log_buffer_ = flush_buffer_;
   flush_buffer_ = temp;
   persistent_lsn_ = next_lsn_ - 1;
+  disk_manager_->WriteLog(flush_buffer_, buffer_used_);
   buffer_used_ = 0;
 }
 
