@@ -35,6 +35,7 @@ class LogManager {
   }
 
   ~LogManager() {
+    StopFlushThread();
     delete[] log_buffer_;
     delete[] flush_buffer_;
     log_buffer_ = nullptr;
