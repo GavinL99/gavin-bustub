@@ -35,13 +35,13 @@ class LogManager {
   }
 
   ~LogManager() {
+    if (flush_thread_ != nullptr) {
+      StopFlushThread();
+    }
     delete[] log_buffer_;
     delete[] flush_buffer_;
     log_buffer_ = nullptr;
     flush_buffer_ = nullptr;
-    if (flush_thread_ != nullptr) {
-      StopFlushThread();
-    }
   }
 
 
