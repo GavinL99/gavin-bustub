@@ -148,6 +148,7 @@ class LogRecord {
   // must have fields
   lsn_t lsn_{INVALID_LSN};
   txn_id_t txn_id_{INVALID_TXN_ID};
+  // txn prev_LSN
   lsn_t prev_lsn_{INVALID_LSN};
   LogRecordType log_record_type_{LogRecordType::INVALID};
 

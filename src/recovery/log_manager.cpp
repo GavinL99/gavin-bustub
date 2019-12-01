@@ -115,27 +115,35 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     flush_cv_.notify_one();
     buffer_used_ = 0;
   }
-
+  // includes commit/abort/begin
   memcpy(log_buffer_ + buffer_used_, &log_record, LogRecord::HEADER_SIZE);
   int pos = buffer_used_ + LogRecord::HEADER_SIZE;
-  if (log_record->log_record_type_ == LogRecordType::INSERT) {
-    memcpy(log_buffer_ + pos, &log_record->insert_rid_, sizeof(RID));
-    pos += sizeof(RID);
-    log_record->insert_tuple_.SerializeTo(log_buffer_ + pos);
-  } else if (log_record->log_record_type_ == LogRecordType::APPLYDELETE) {
-    memcpy(log_buffer_ + pos, &log_record->delete_rid_, sizeof(RID));
-    pos += sizeof(RID);
-    log_record->delete_tuple_.SerializeTo(log_buffer_ + pos);
-  } else if (log_record->log_record_type_ == LogRecordType::UPDATE) {
-    memcpy(log_buffer_ + pos, &log_record->update_rid_, sizeof(RID));
-    pos += sizeof(RID);
-    log_record->old_tuple_.SerializeTo(log_buffer_ + pos);
-    pos += sizeof(log_record->old_tuple_.GetLength()) + sizeof(int32_t);
-    log_record->new_tuple_.SerializeTo(log_buffer_ + pos);
-  } else if (log_record->log_record_type_ == LogRecordType::NEWPAGE) {
-    memcpy(log_buffer_ + pos, &log_record->prev_page_id_, sizeof(page_id_t));
-  }
+  assert(log_record->log_record_type_ != LogRecordType::INVALID);
 
+  switch (log_record->log_record_type_) {
+    case LogRecordType::INSERT:
+      memcpy(log_buffer_ + pos, &log_record->insert_rid_, sizeof(RID));
+      pos += sizeof(RID);
+      log_record->insert_tuple_.SerializeTo(log_buffer_ + pos);
+      break;
+    case LogRecordType::APPLYDELETE: case LogRecordType::MARKDELETE: case LogRecordType::ROLLBACKDELETE:
+      memcpy(log_buffer_ + pos, &log_record->delete_rid_, sizeof(RID));
+      pos += sizeof(RID);
+      log_record->delete_tuple_.SerializeTo(log_buffer_ + pos);
+      break;
+    case LogRecordType::UPDATE:
+      memcpy(log_buffer_ + pos, &log_record->update_rid_, sizeof(RID));
+      pos += sizeof(RID);
+      log_record->old_tuple_.SerializeTo(log_buffer_ + pos);
+      pos += sizeof(log_record->old_tuple_.GetLength()) + sizeof(int32_t);
+      log_record->new_tuple_.SerializeTo(log_buffer_ + pos);
+      break;
+    case LogRecordType::NEWPAGE:
+      memcpy(log_buffer_ + pos, &log_record->prev_page_id_, sizeof(page_id_t));
+      break;
+    default:
+      break;
+  }
 }
 
 }  // namespace bustub

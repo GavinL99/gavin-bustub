@@ -41,7 +41,6 @@ bool TablePage::InsertTuple(const Tuple &tuple, RID *rid, Transaction *txn, Lock
   if (GetFreeSpaceRemaining() < tuple.size_ + SIZE_TUPLE) {
     return false;
   }
-
   // Try to find a free slot to reuse.
   uint32_t i;
   for (i = 0; i < GetTupleCount(); i++) {

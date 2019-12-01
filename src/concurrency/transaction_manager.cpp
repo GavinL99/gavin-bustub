@@ -30,7 +30,8 @@ Transaction *TransactionManager::Begin(Transaction *txn) {
   }
 
   if (enable_logging) {
-    // TODO(student): Add logging here.
+    LogRecord newLog(txn->GetTransactionId(), INVALID_LSN, LogRecordType::BEGIN);
+    txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
   }
 
   txn_map[txn->GetTransactionId()] = txn;
@@ -47,6 +48,7 @@ void TransactionManager::Commit(Transaction *txn) {
     auto table = item.table_;
     if (item.wtype_ == WType::DELETE) {
       // Note that this also releases the lock when holding the page latch.
+      // the operation will handle logging itself
       table->ApplyDelete(item.rid_, txn);
     }
     write_set->pop_back();
@@ -54,7 +56,12 @@ void TransactionManager::Commit(Transaction *txn) {
   write_set->clear();
 
   if (enable_logging) {
-    // TODO(student): add logging here
+    if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
+      log_manager_->TriggerFlush();
+      assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
+    }
+    LogRecord newLog(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::COMMIT);
+    txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
   }
 
   // Release all the locks.
@@ -84,7 +91,12 @@ void TransactionManager::Abort(Transaction *txn) {
   write_set->clear();
 
   if (enable_logging) {
-    // TODO(student): add logging here
+    if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
+      log_manager_->TriggerFlush();
+      assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
+    }
+    LogRecord newLog(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::ABORT);
+    txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
   }
 
   // Release all the locks.
