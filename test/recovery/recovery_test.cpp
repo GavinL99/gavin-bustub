@@ -45,14 +45,14 @@ TEST(RecoveryTest, FlushLogTest) {
                                      bustub_instance->log_manager_, txn);
     bustub_instance->transaction_manager_->Commit(txn);
 
-    Column col1{"a", TypeId::VARCHAR, 20};
-    Column col2{"b", TypeId::SMALLINT};
-    std::vector<Column> cols{col1, col2};
-    Schema schema{cols};
-
-    Tuple tuple = ConstructTuple(&schema);
-    auto val_0 = tuple.GetValue(&schema, 0);
-    auto val_1 = tuple.GetValue(&schema, 1);
+//    Column col1{"a", TypeId::VARCHAR, 20};
+//    Column col2{"b", TypeId::SMALLINT};
+//    std::vector<Column> cols{col1, col2};
+//    Schema schema{cols};
+//
+//    Tuple tuple = ConstructTuple(&schema);
+//    auto val_0 = tuple.GetValue(&schema, 0);
+//    auto val_1 = tuple.GetValue(&schema, 1);
 
     // set log time out very high so that flush doesn't happen before checkpoint is performed
     log_timeout = std::chrono::seconds(1);
@@ -74,13 +74,11 @@ TEST(RecoveryTest, FlushLogTest) {
     std::this_thread::sleep_for(std::chrono::seconds(2));
     LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
-    bustub_instance->transaction_manager_->Commit(txn);
     bustub_instance->log_manager_->StopFlushThread();
 
 //    bustub_instance->transaction_manager_->Commit(txn1);
     delete txn;
     delete test_table;
-
     delete bustub_instance;
     LOG_INFO("Tearing down the system..");
     remove("test.db");
