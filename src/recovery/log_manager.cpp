@@ -34,16 +34,20 @@ void LogManager::flush_helper() {
   while (enable_logging) {
     uniq_lock lock(latch_);
     // auto call unlock: deal with spurious wakeup
+    LOG_INFO("Flush helper waiting...\n");
     flush_cv_.wait_for(lock, log_timeout,
         [=] {return !enable_logging || disk_manager_->HasFlushLogFuture();});    //
     // if timeout, need to swap and set persistent_lsn_
+    LOG_INFO("Flush helper woke up...\n");
     if (!disk_manager_->HasFlushLogFuture()) {
+      LOG_INFO("Flush helper swapping buffers...\n");
       char *temp = log_buffer_;
       log_buffer_ = flush_buffer_;
       flush_buffer_ = temp;
       persistent_lsn_ = next_lsn_ - 1;
     }
     disk_manager_->WriteLog(flush_buffer_, flush_sz_);
+    LOG_INFO("Flush helper wrote to disk...\n");
   }
 }
 

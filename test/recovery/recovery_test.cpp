@@ -58,20 +58,24 @@ TEST(RecoveryTest, FlushLogTest) {
     log_timeout = std::chrono::seconds(1);
 
     // insert a ton of tuples
-    Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
-    for (int i = 0; i < 1000; i++) {
-      RID rid;
-      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
-    }
+//    Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
+//    for (int i = 0; i < 1000; i++) {
+//      RID rid;
+//      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
+//    }
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
-    for (int i = 0; i < 2000; i++) {
-      RID rid;
-      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
-    }
+//    for (int i = 0; i < 2000; i++) {
+//      RID rid;
+//      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
+//    }
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
-    bustub_instance->transaction_manager_->Commit(txn1);
+//    bustub_instance->transaction_manager_->Commit(txn1);
     delete txn;
     delete test_table;
 
