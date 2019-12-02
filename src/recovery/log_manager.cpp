@@ -172,6 +172,7 @@ void LogManager::SerializeLog(char* data, LogRecord* log_record) {
     default:
       break;
   }
+  LOG_DEBUG("Serialize: %s\n", log_record->ToString().c_str());
 }
 
 
