@@ -146,12 +146,22 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
 
 void LogManager::SerializeLog(char* data, LogRecord* log_record) {
   char* begin_ptr = data;
-  memcpy(data, &log_record, LogRecord::HEADER_SIZE);
+//  memcpy(data, &log_record, LogRecord::HEADER_SIZE);
+  memcpy(data, &log_record->size_, sizeof(int32_t));
+  data += sizeof(int32_t);
+  memcpy(data, &log_record->lsn_, sizeof(lsn_t));
+  data += sizeof(lsn_t);
+  memcpy(data, &log_record->txn_id_, sizeof(txn_id_t));
+  data += sizeof(txn_id_t);
+  memcpy(data, &log_record->prev_lsn_, sizeof(lsn_t));
+  data += sizeof(lsn_t);
+  memcpy(data, &log_record->log_record_type_, sizeof(LogRecordType));
+  data += sizeof(LogRecordType);
 
   int32_t log_sz = *reinterpret_cast<const uint32_t *>(data);
   LOG_DEBUG("Serial Size: %d\n", log_sz);
 
-  data += LogRecord::HEADER_SIZE;
+//  data += LogRecord::HEADER_SIZE;
   assert(log_record->log_record_type_ != LogRecordType::INVALID);
   assert(log_record->lsn_ != INVALID_LSN);
 
