@@ -25,7 +25,7 @@ namespace bustub {
     assert(data >= log_buffer_);
     assert(data < log_buffer_ + LOG_BUFFER_SIZE);
     int32_t log_sz = *reinterpret_cast<const int32_t *>(data);
-    if (*data == '\0' || data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
+    if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
       LOG_DEBUG("Deserial Out of Bound!\n");
       return false;
     }
@@ -83,7 +83,7 @@ namespace bustub {
     while (true) {
       LogRecord temp_log;
       LOG_DEBUG("Cursor: %d\n", cursor);
-      if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
+      if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log) || *log_buffer_ == '\0') {
         break;
       }
       LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
@@ -102,7 +102,7 @@ namespace bustub {
     offset_ = 0;
     // stop when hit invalid log or no more log to read
     while (true) {
-      if (!disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_)) {
+      if (!disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_) || *log_buffer_ == '\0') {
         break;
       }
       // loop over records on one buffer
