@@ -27,7 +27,7 @@
 namespace bustub {
 
 
-TEST(RecoveryTest, DISABLED_FlushLogTest) {
+TEST(RecoveryTest, FlushLogTest) {
     remove("test.db");
     remove("test.log");
     BustubInstance *bustub_instance = new BustubInstance("test.db");
@@ -83,7 +83,6 @@ TEST(RecoveryTest, DISABLED_FlushLogTest) {
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
     bustub_instance->transaction_manager_->Commit(txn1);
-    bustub_instance->log_manager_->StopFlushThread();
     delete txn;
     delete txn1;
     delete test_table;
@@ -94,7 +93,7 @@ TEST(RecoveryTest, DISABLED_FlushLogTest) {
   }
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, RedoTest) {
+TEST(RecoveryTest, DISABLED_RedoTest) {
   remove("test.db");
   remove("test.log");
 
