@@ -143,14 +143,29 @@ namespace bustub {
         page_id_t new_page;
         page_id_t prev_page = temp_log.prev_page_id_;
         TablePage *temp_prev_page(nullptr);
+        TablePage *temp_page(nullptr);
+
         if (prev_page != INVALID_PAGE_ID) {
           temp_prev_page = reinterpret_cast<TablePage *>(
               buffer_pool_manager_->FetchPage(temp_log.prev_page_id_));
+          page_id_t temp_next = temp_prev_page->GetNextPageId();
+          if (temp_next != INVALID_PAGE_ID) {
+            temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(temp_next));
+            assert(temp_page != nullptr);
+            // if next page exists (already flushed to disk), then no redo
+            if (temp_page->GetLSN() >= temp_lsn) {
+              LOG_DEBUG("No New Page! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_lsn);
+              buffer_pool_manager_->UnpinPage(temp_next, false);
+              buffer_pool_manager_->UnpinPage(prev_page, false);
+              return;
+            }
+          }
         }
-        auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(&new_page));
+        // if next page not exist, need to allocate new page
+        temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(&new_page));
         assert(temp_page != nullptr);
         if (prev_page != INVALID_PAGE_ID) {
-          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
+//          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
           assert(temp_prev_page->GetNextPageId() == new_page);
         } else {
           temp_prev_page->SetNextPageId(new_page);
