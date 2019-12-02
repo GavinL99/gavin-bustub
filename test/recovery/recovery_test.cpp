@@ -142,6 +142,7 @@ TEST(RecoveryTest, SerializedTest) {
 
     bustub_instance->log_manager_->StopFlushThread();
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+    LOG_INFO("Flush Number: %d\n", bustub_instance->disk_manager_->GetNumFlushes());
 
     auto *log_recovery = new LogRecovery(bustub_instance->disk_manager_, bustub_instance->buffer_pool_manager_);
 
