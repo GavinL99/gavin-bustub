@@ -98,10 +98,10 @@ namespace bustub {
  *lsn_mapping_ table
  */
   void LogRecovery::Redo() {
-    LOG_DEBUG("ATT: %ld, LSN map: %ld\n", active_txn_.size(), lsn_mapping_.size());
-    offset_ = 0;
-    // stop when hit invalid log or no more log to read
+    assert(active_txn_.empty() && lsn_mapping_.empty());
+    // scan all log
     assert(disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_));
+    offset_ = 0;
     int cursor = 0;
     while (true) {
       // loop over records on one buffer
@@ -121,7 +121,7 @@ namespace bustub {
     }
   }
 
-  void LogRecovery::RedoHelper(const LogRecord& temp_log, int cursor) {
+  void LogRecovery::RedoHelper(const LogRecord &temp_log, int cursor) {
     lsn_t temp_lsn = temp_log.lsn_;
     txn_id_t temp_txn = temp_log.txn_id_;
     LogRecordType temp_type = temp_log.log_record_type_;
@@ -142,8 +142,9 @@ namespace bustub {
             temp_log.insert_rid_.GetPageId()));
         if (temp_page->GetLSN() < temp_log.lsn_) {
           Tuple temp_old_t;
-          assert(temp_page->UpdateTuple(temp_log.insert_tuple_, &temp_old_t, temp_log.insert_rid_, nullptr, nullptr,
-                                        nullptr));
+          assert(temp_page->UpdateTuple(temp_log.insert_tuple_, &temp_old_t,
+                                        temp_log.insert_rid_,
+                                        nullptr, nullptr, nullptr));
           temp_page->SetLSN(temp_log.lsn_);
         } else {
           LOG_DEBUG("No Insert! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
