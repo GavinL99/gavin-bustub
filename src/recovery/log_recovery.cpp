@@ -23,17 +23,13 @@ namespace bustub {
  */
   bool LogRecovery::DeserializeLogRecord(const char *data, LogRecord *log_record) {
     int32_t log_sz = *reinterpret_cast<const uint32_t *>(data);
-    LogRecordType log_type = *reinterpret_cast<const LogRecordType *>(data + sizeof(uint32_t));
     if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
       LOG_DEBUG("Deserial Out of Bound!\n");
       return false;
     }
-    if (log_type == LogRecordType::INVALID) {
-      LOG_DEBUG("Deserial Invalid Record!\n");
-      return false;
-    }
     // read header
     memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
+    assert(log_record->size_ > 0 && log_record->lsn_ != INVALID_LSN);
     LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     const char *tuple_data = data + LogRecord::HEADER_SIZE;
 
