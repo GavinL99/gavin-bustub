@@ -168,49 +168,49 @@ namespace bustub {
           assert(temp_rid == temp_log.insert_rid_);
           temp_page->SetLSN(temp_lsn);
         } else {
-          LOG_DEBUG("No Insert! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
+          LOG_DEBUG("No Insert! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_lsn);
         }
         buffer_pool_manager_->UnpinPage(temp_log.insert_rid_.GetPageId(), true);
       } else if (temp_type == LogRecordType::MARKDELETE) {
         auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(
             temp_log.delete_rid_.GetPageId()));
-        if (temp_page->GetLSN() < temp_log.lsn_) {
+        if (temp_page->GetLSN() < temp_lsn) {
           assert(temp_page->MarkDelete(temp_log.delete_rid_, nullptr, nullptr, nullptr));
-          temp_page->SetLSN(temp_log.lsn_);
+          temp_page->SetLSN(temp_lsn);
         } else {
-          LOG_DEBUG("No delete! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
+          LOG_DEBUG("No delete! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_lsn);
         }
         buffer_pool_manager_->UnpinPage(temp_log.delete_rid_.GetPageId(), true);
       } else if (temp_type == LogRecordType::APPLYDELETE) {
         auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(
             temp_log.delete_rid_.GetPageId()));
-        if (temp_page->GetLSN() < temp_log.lsn_) {
+        if (temp_page->GetLSN() < temp_lsn) {
           temp_page->ApplyDelete(temp_log.delete_rid_, nullptr, nullptr);
-          temp_page->SetLSN(temp_log.lsn_);
+          temp_page->SetLSN(temp_lsn);
         } else {
-          LOG_DEBUG("No delete! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
+          LOG_DEBUG("No delete! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_lsn);
         }
         buffer_pool_manager_->UnpinPage(temp_log.delete_rid_.GetPageId(), true);
       } else if (temp_type == LogRecordType::ROLLBACKDELETE) {
         auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(
             temp_log.delete_rid_.GetPageId()));
-        if (temp_page->GetLSN() < temp_log.lsn_) {
+        if (temp_page->GetLSN() < temp_lsn) {
           temp_page->RollbackDelete(temp_log.delete_rid_, nullptr, nullptr);
-          temp_page->SetLSN(temp_log.lsn_);
+          temp_page->SetLSN(temp_lsn);
         } else {
-          LOG_DEBUG("No delete! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
+          LOG_DEBUG("No delete! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_lsn);
         }
         buffer_pool_manager_->UnpinPage(temp_log.delete_rid_.GetPageId(), true);
       } else if (temp_type == LogRecordType::UPDATE) {
         auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(
             temp_log.update_rid_.GetPageId()));
-        if (temp_page->GetLSN() < temp_log.lsn_) {
+        if (temp_page->GetLSN() < temp_lsn) {
           Tuple temp_old_t;
           assert(temp_page->UpdateTuple(temp_log.new_tuple_, &temp_old_t, temp_log.update_rid_, nullptr, nullptr,
                                         nullptr));
-          temp_page->SetLSN(temp_log.lsn_);
+          temp_page->SetLSN(temp_lsn);
         } else {
-          LOG_DEBUG("No update! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
+          LOG_DEBUG("No update! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_lsn);
         }
         buffer_pool_manager_->UnpinPage(temp_log.update_rid_.GetPageId(), true);
       }
