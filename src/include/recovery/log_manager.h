@@ -29,7 +29,7 @@ namespace bustub {
 class LogManager {
  public:
   explicit LogManager(DiskManager *disk_manager)
-      : next_lsn_(0), persistent_lsn_(INVALID_LSN), disk_manager_(disk_manager), buffer_used_(0) {
+      : next_lsn_(0), persistent_lsn_(INVALID_LSN), disk_manager_(disk_manager), buffer_used_(0), total_log_sz(0) {
     log_buffer_ = new char[LOG_BUFFER_SIZE];
     flush_buffer_ = new char[LOG_BUFFER_SIZE];
   }
@@ -53,6 +53,8 @@ class LogManager {
   inline lsn_t GetPersistentLSN() { return persistent_lsn_; }
   inline void SetPersistentLSN(lsn_t lsn) { persistent_lsn_ = lsn; }
   inline char *GetLogBuffer() { return log_buffer_; }
+
+  inline int GetTotalSize() { return total_log_sz; }
 
   static void SerializeLog(char*, LogRecord*);
 
@@ -89,6 +91,8 @@ class LogManager {
 
   // size used
   std::atomic<int> buffer_used_;
+  // total log size
+  std::atomic<int> total_log_sz;
 
   };
 

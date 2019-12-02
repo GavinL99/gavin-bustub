@@ -138,6 +138,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
   SerializeLog(log_buffer_ + buffer_used_, log_record);
   assert(log_record->size_ > 0 && log_record->lsn_ != INVALID_LSN);
   buffer_used_ += log_record->size_;
+  total_log_sz += log_record->size_;
   return log_record->lsn_;
 }
 

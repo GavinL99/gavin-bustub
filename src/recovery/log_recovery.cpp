@@ -22,6 +22,8 @@ namespace bustub {
  * incomplete log record
  */
   bool LogRecovery::DeserializeLogRecord(const char *data, LogRecord *log_record) {
+    assert(data >= log_buffer_);
+    assert(data < log_buffer_ + LOG_BUFFER_SIZE);
     int32_t log_sz = *reinterpret_cast<const uint32_t *>(data);
     assert(log_sz > 0);
     if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
@@ -29,6 +31,11 @@ namespace bustub {
       return false;
     }
     // read header
+    DeserialHelper(data, log_record);
+    return true;
+  }
+
+  void LogRecovery::DeserialHelper(const char *data, LogRecord *log_record) {
     memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
     assert(log_record->size_ > 0);
     assert(log_record->lsn_ != INVALID_LSN);
@@ -58,7 +65,6 @@ namespace bustub {
       default:
         break;
     }
-    return true;
   }
 
   void LogRecovery::TestDeserial() {
