@@ -118,7 +118,6 @@ namespace bustub {
       }
       RedoHelper(temp_log, cursor);
       cursor += temp_log.size_;
-      offset_ += LOG_BUFFER_SIZE;
     }
   }
 
