@@ -82,6 +82,7 @@ namespace bustub {
         lsn_t temp_lsn = temp_log.lsn_;
         txn_id_t temp_txn = temp_log.txn_id_;
         LogRecordType temp_type = temp_log.log_record_type_;
+        LOG_DEBUG("Replay: %d\n", temp_log.log_record_type_);
 
         if (temp_type == LogRecordType::COMMIT || temp_type == LogRecordType::ABORT) {
           active_txn_.erase(temp_txn);
