@@ -85,6 +85,7 @@ TEST(RecoveryTest, FlushLogTest) {
     bustub_instance->transaction_manager_->Commit(txn1);
     bustub_instance->log_manager_->StopFlushThread();
     delete txn;
+    delete txn1;
     delete test_table;
     delete bustub_instance;
     LOG_INFO("Tearing down the system..");
