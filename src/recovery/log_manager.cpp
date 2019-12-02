@@ -52,8 +52,7 @@ void LogManager::flush_helper() {
         continue;
       }
     }
-    int gg = buffer_used_;
-    LOG_INFO("Flush helper wrote to disk: %d\n", gg);
+    LOG_INFO("Flush helper wrote to disk: %d\n", (int) buffer_used_);
     disk_manager_->WriteLog(flush_buffer_, buffer_used_);
     buffer_used_ = 0;
   }
@@ -72,8 +71,8 @@ void LogManager::TriggerFlush() {
   flush_buffer_ = temp;
   persistent_lsn_ = next_lsn_ - 1;
   disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+  LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
   buffer_used_ = 0;
-  LOG_DEBUG("Finish Trigger force flush!\n");
 }
 
 
@@ -122,11 +121,10 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     flush_buffer_ = temp;
 
     // need to null future pointer first and write
-    int temp_sz = buffer_used_;
     // no need to swap page here
     LOG_DEBUG("Set Async Flush Futures\n");
     std::future<void> fut = std::async(std::launch::async, [=] {
-      bustub::LOG_DEBUG("Async Flush size: %d\n", temp_sz);
+      bustub::LOG_DEBUG("Async Flush size: %d\n", (int) buffer_used_);
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
       bustub::LOG_DEBUG("Finish Async flush\n");
@@ -187,7 +185,6 @@ void LogManager::SerializeLog(char* data, LogRecord* log_record) {
   }
   LogRecord dummy_log;
   LogRecovery::DeserialHelper(begin_ptr, &dummy_log);
-  LOG_DEBUG("Correct Serialize: %s\n", log_record->ToString().c_str());
   LOG_DEBUG("Actual Serialize: %s\n", dummy_log.ToString().c_str());
 }
 
