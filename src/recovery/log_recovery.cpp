@@ -185,4 +185,17 @@ namespace bustub {
     lsn_mapping_.clear();
   }
 
+  void LogRecovery::TestDeserial() {
+    disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, 0);
+    int cursor = 0;
+    while (true) {
+      LogRecord temp_log;
+      if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
+        break;
+      }
+      LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
+      cursor += temp_log.GetSize();
+    }
+  }
+
 }  // namespace bustub

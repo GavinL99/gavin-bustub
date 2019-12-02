@@ -142,26 +142,16 @@ TEST(RecoveryTest, SerializedTest) {
 
     bustub_instance->log_manager_->StopFlushThread();
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+
     auto *log_recovery = new LogRecovery(bustub_instance->disk_manager_, bustub_instance->buffer_pool_manager_);
 
     ASSERT_FALSE(enable_logging);
-    char *log_buffer = new char[LOG_BUFFER_SIZE];
-    assert(bustub_instance->disk_manager_->ReadLog(log_buffer, LOG_BUFFER_SIZE, 0));
-    int cursor = 0;
-    while (true) {
-      LogRecord temp_log;
-      if (!log_recovery->DeserializeLogRecord(log_buffer + cursor, &temp_log)) {
-        break;
-      }
-      LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
-      cursor += temp_log.GetSize();
-    }
+    log_recovery->TestDeserial();
 
     delete txn;
     delete txn1;
     delete test_table;
     delete bustub_instance;
-    delete[] log_buffer;
     delete log_recovery;
     LOG_INFO("Tearing down the system..");
     remove("test.db");

@@ -41,6 +41,8 @@ class LogRecovery {
   void Undo();
   bool DeserializeLogRecord(const char *data, LogRecord *log_record);
 
+  void TestDeserial();
+
  private:
   DiskManager *disk_manager_ __attribute__((__unused__));
   BufferPoolManager *buffer_pool_manager_ __attribute__((__unused__));
