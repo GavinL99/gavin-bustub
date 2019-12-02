@@ -113,6 +113,7 @@ namespace bustub {
         cursor = 0;
       }
       if (*(log_buffer_ + cursor) == '\0') {
+        LOG_DEBUG("Finish scanning all log!\n");
         break;
       }
       RedoHelper(temp_log, cursor);
