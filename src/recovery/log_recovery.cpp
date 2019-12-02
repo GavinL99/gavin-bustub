@@ -29,6 +29,7 @@ namespace bustub {
     }
     // read header
     memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
+    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     const char *tuple_data = data + LogRecord::HEADER_SIZE;
 
     switch (log_record->log_record_type_) {
@@ -82,7 +83,7 @@ namespace bustub {
         lsn_t temp_lsn = temp_log.lsn_;
         txn_id_t temp_txn = temp_log.txn_id_;
         LogRecordType temp_type = temp_log.log_record_type_;
-        LOG_DEBUG("Replay: %d\n", temp_log.log_record_type_);
+        LOG_DEBUG("Replay: %s\n", temp_log.ToString().c_str());
 
         if (temp_type == LogRecordType::COMMIT || temp_type == LogRecordType::ABORT) {
           active_txn_.erase(temp_txn);
