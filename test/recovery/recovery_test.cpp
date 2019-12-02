@@ -52,38 +52,38 @@ TEST(RecoveryTest, FlushLogTest) {
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
 
-//    Column col1{"a", TypeId::VARCHAR, 20};
-//    Column col2{"b", TypeId::SMALLINT};
-//    std::vector<Column> cols{col1, col2};
-//    Schema schema{cols};
-//
-//    Tuple tuple = ConstructTuple(&schema);
-//    auto val_0 = tuple.GetValue(&schema, 0);
-//    auto val_1 = tuple.GetValue(&schema, 1);
+    Column col1{"a", TypeId::VARCHAR, 20};
+    Column col2{"b", TypeId::SMALLINT};
+    std::vector<Column> cols{col1, col2};
+    Schema schema{cols};
+
+    Tuple tuple = ConstructTuple(&schema);
+    auto val_0 = tuple.GetValue(&schema, 0);
+    auto val_1 = tuple.GetValue(&schema, 1);
 
     // set log time out very high so that flush doesn't happen before checkpoint is performed
-    log_timeout = std::chrono::seconds(15);
+    log_timeout = std::chrono::seconds(1);
 
     // insert a ton of tuples
-//    Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
-//    for (int i = 0; i < 1000; i++) {
-//      RID rid;
-//      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
-//    }
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    LOG_INFO("Woke up after sleep!\n");
+    Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
+    for (int i = 0; i < 1000; i++) {
+      RID rid;
+      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
+    }
+//    std::this_thread::sleep_for(std::chrono::seconds(2));
+//    LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
-//    for (int i = 0; i < 2000; i++) {
-//      RID rid;
-//      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
-//    }
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    LOG_INFO("Woke up after sleep!\n");
+    for (int i = 0; i < 2000; i++) {
+      RID rid;
+      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
+    }
+//    std::this_thread::sleep_for(std::chrono::seconds(2));
+//    LOG_INFO("Woke up after sleep!\n");
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
-//    bustub_instance->transaction_manager_->Commit(txn1);
-//    bustub_instance->log_manager_->StopFlushThread();
+    bustub_instance->transaction_manager_->Commit(txn1);
+    bustub_instance->log_manager_->StopFlushThread();
     delete txn;
     delete test_table;
     delete bustub_instance;
