@@ -34,31 +34,40 @@ namespace bustub {
   }
 
   void LogRecovery::DeserialHelper(const char *data, LogRecord *log_record) {
-    memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
-    assert(log_record->size_ > 0);
-//    assert(log_record->lsn_ != INVALID_LSN);
-    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
-    const char *tuple_data = data + LogRecord::HEADER_SIZE;
+//    memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
+    memcpy(&log_record->size_, data, sizeof(int32_t));
+    data += sizeof(int32_t);
+    memcpy(&log_record->lsn_, data, sizeof(lsn_t));
+    data += sizeof(lsn_t);
+    memcpy(&log_record->txn_id_, data, sizeof(txn_id_t));
+    data += sizeof(txn_id_t);
+    memcpy(&log_record->prev_lsn_, data, sizeof(lsn_t));
+    data += sizeof(lsn_t);
+    memcpy(&log_record->log_record_type_, data, sizeof(LogRecordType));
+    data += sizeof(LogRecordType);
 
+    assert(log_record->size_ > 0);
+    assert(log_record->lsn_ != INVALID_LSN);
+//    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     switch (log_record->log_record_type_) {
       case LogRecordType::INSERT:
-        log_record->insert_rid_ = *reinterpret_cast<const RID *>(tuple_data);
-        log_record->insert_tuple_.DeserializeFrom(tuple_data + sizeof(RID));
+        log_record->insert_rid_ = *reinterpret_cast<const RID *>(data);
+        log_record->insert_tuple_.DeserializeFrom(data + sizeof(RID));
         break;
       case LogRecordType::APPLYDELETE:
       case LogRecordType::MARKDELETE:
       case LogRecordType::ROLLBACKDELETE:
-        log_record->delete_rid_ = *reinterpret_cast<const RID *>(tuple_data);
-        log_record->delete_tuple_.DeserializeFrom(tuple_data + sizeof(RID));
+        log_record->delete_rid_ = *reinterpret_cast<const RID *>(data);
+        log_record->delete_tuple_.DeserializeFrom(data + sizeof(RID));
         break;
       case LogRecordType::UPDATE:
-        log_record->update_rid_ = *reinterpret_cast<const RID *>(tuple_data);
-        log_record->old_tuple_.DeserializeFrom(tuple_data + sizeof(RID));
-        log_record->new_tuple_.DeserializeFrom(tuple_data + sizeof(RID) +
+        log_record->update_rid_ = *reinterpret_cast<const RID *>(data);
+        log_record->old_tuple_.DeserializeFrom(data + sizeof(RID));
+        log_record->new_tuple_.DeserializeFrom(data + sizeof(RID) +
                                                sizeof(int32_t) + log_record->old_tuple_.GetLength());
         break;
       case LogRecordType::NEWPAGE:
-        log_record->prev_page_id_ = *reinterpret_cast<const page_id_t *>(tuple_data);
+        log_record->prev_page_id_ = *reinterpret_cast<const page_id_t *>(data);
         break;
       default:
         break;
