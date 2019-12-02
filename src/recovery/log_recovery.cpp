@@ -22,18 +22,20 @@ namespace bustub {
  * incomplete log record
  */
   bool LogRecovery::DeserializeLogRecord(const char *data, LogRecord *log_record) {
-    assert(data >= log_buffer_);
-    assert(data < log_buffer_ + LOG_BUFFER_SIZE);
     int32_t log_sz = *reinterpret_cast<const int32_t *>(data);
     if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
       LOG_DEBUG("Deserial Out of Bound!\n");
       return false;
     }
     // read header
-    return DeserialHelper(data, log_record);
+    DeserialHelper(data, log_record);
+    return true;
   }
 
-  bool LogRecovery::DeserialHelper(const char *data, LogRecord *log_record) {
+  /*
+   * Assume valid buffer to deserialize
+   */
+  void LogRecovery::DeserialHelper(const char *data, LogRecord *log_record) {
 //    memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
     memcpy(&log_record->size_, data, sizeof(int32_t));
     data += sizeof(int32_t);
@@ -46,9 +48,7 @@ namespace bustub {
     memcpy(&log_record->log_record_type_, data, sizeof(LogRecordType));
     data += sizeof(LogRecordType);
 
-    if (log_record->lsn_ == INVALID_LSN) {
-      return false;
-    }
+    assert(log_record->lsn_ != INVALID_LSN);
     assert(log_record->size_ > 0);
 //    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     switch (log_record->log_record_type_) {
@@ -74,7 +74,6 @@ namespace bustub {
       default:
         break;
     }
-    return true;
   }
 
   void LogRecovery::TestDeserial() {
@@ -102,16 +101,23 @@ namespace bustub {
     offset_ = 0;
     // stop when hit invalid log or no more log to read
     while (true) {
-      if (!disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_) || *log_buffer_ == '\0') {
+      if (!disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_)) {
         break;
       }
       // loop over records on one buffer
       int cursor = 0;
 
       while (true) {
+        if (*(log_buffer_ + cursor) == '\0') {
+          break;
+        }
         LogRecord temp_log;
         if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
-          break;
+          LOG_DEBUG("Hit the truncated elem, readjust cursor\n");
+          offset_ += cursor;
+          disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_);
+          cursor = 0;
+          continue;
         }
         lsn_t temp_lsn = temp_log.lsn_;
         txn_id_t temp_txn = temp_log.txn_id_;

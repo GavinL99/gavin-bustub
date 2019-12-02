@@ -41,7 +41,7 @@ class LogRecovery {
   void Redo();
   void Undo();
   bool DeserializeLogRecord(const char *data, LogRecord *log_record);
-  static bool DeserialHelper(const char*, LogRecord*);
+  static void DeserialHelper(const char*, LogRecord*);
 
   void TestDeserial();
 
