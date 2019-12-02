@@ -92,8 +92,83 @@ TEST(RecoveryTest, DISABLED_FlushLogTest) {
     remove("test.log");
   }
 
+TEST(RecoveryTest, SerializedTest) {
+    remove("test.db");
+    remove("test.log");
+    BustubInstance *bustub_instance = new BustubInstance("test.db");
+
+    EXPECT_FALSE(enable_logging);
+    LOG_INFO("Skip system recovering...");
+
+    bustub_instance->log_manager_->RunFlushThread();
+    EXPECT_TRUE(enable_logging);
+    LOG_INFO("System logging thread running...");
+
+    LOG_INFO("Create a test table");
+    Transaction *txn = bustub_instance->transaction_manager_->Begin();
+    auto *test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
+                                     bustub_instance->log_manager_, txn);
+
+    bustub_instance->log_manager_->TriggerFlush();
+    LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+
+    bustub_instance->transaction_manager_->Commit(txn);
+    bustub_instance->log_manager_->TriggerFlush();
+    LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+
+
+    Column col1{"a", TypeId::VARCHAR, 20};
+    Column col2{"b", TypeId::SMALLINT};
+    std::vector<Column> cols{col1, col2};
+    Schema schema{cols};
+
+    Tuple tuple = ConstructTuple(&schema);
+    auto val_0 = tuple.GetValue(&schema, 0);
+    auto val_1 = tuple.GetValue(&schema, 1);
+
+    // set log time out very high so that flush doesn't happen before checkpoint is performed
+    log_timeout = std::chrono::seconds(100);
+
+    // insert a ton of tuples
+    Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
+    for (int i = 0; i < 10; i++) {
+      RID rid;
+      EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
+    }
+
+    LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
+
+    bustub_instance->transaction_manager_->Commit(txn1);
+
+    auto *log_recovery = new LogRecovery(bustub_instance->disk_manager_, bustub_instance->buffer_pool_manager_);
+
+    ASSERT_FALSE(enable_logging);
+    char *log_buffer = new char[LOG_BUFFER_SIZE];
+    assert(bustub_instance->disk_manager_->ReadLog(log_buffer, LOG_BUFFER_SIZE, 0));
+    int cursor = 0;
+    while (true) {
+      LogRecord temp_log;
+      if (!log_recovery->DeserializeLogRecord(log_buffer + cursor, &temp_log)) {
+        break;
+      }
+      LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
+      cursor += temp_log.GetSize();
+    }
+
+
+    delete txn;
+    delete txn1;
+    delete test_table;
+    delete bustub_instance;
+    delete[] log_buffer;
+    delete log_recovery;
+    LOG_INFO("Tearing down the system..");
+    remove("test.db");
+    remove("test.log");
+  }
+
 // NOLINTNEXTLINE
-TEST(RecoveryTest, RedoTest) {
+TEST(RecoveryTest, DISABLED_RedoTest) {
   remove("test.db");
   remove("test.log");
 
