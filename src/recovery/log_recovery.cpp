@@ -25,7 +25,7 @@ namespace bustub {
     assert(data >= log_buffer_);
     assert(data < log_buffer_ + LOG_BUFFER_SIZE);
     int32_t log_sz = *reinterpret_cast<const int32_t *>(data);
-    if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
+    if (*data == '\0' || data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
       LOG_DEBUG("Deserial Out of Bound!\n");
       return false;
     }
