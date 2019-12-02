@@ -129,23 +129,44 @@ namespace bustub {
 
     if (temp_type == LogRecordType::COMMIT || temp_type == LogRecordType::ABORT) {
       active_txn_.erase(temp_txn);
+
     } else if (temp_log.log_record_type_ == LogRecordType::BEGIN) {
       assert(active_txn_.find(temp_txn) == active_txn_.end());
       active_txn_[temp_txn] = temp_lsn;
+
     } else {
       // update active txn table
       active_txn_[temp_txn] = temp_lsn;
       lsn_mapping_[temp_lsn] = offset_ + cursor;
 
-      if (temp_type == LogRecordType::INSERT) {
+      if (temp_type == LogRecordType::NEWPAGE) {
+        page_id_t new_page;
+        page_id_t prev_page = temp_log.prev_page_id_;
+        TablePage *temp_prev_page(nullptr);
+        if (prev_page != INVALID_PAGE_ID) {
+          temp_prev_page = reinterpret_cast<TablePage *>(
+              buffer_pool_manager_->FetchPage(temp_log.prev_page_id_));
+          assert(temp_prev_page->GetNextPageId() == INVALID_PAGE_ID);
+        }
+        auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(&new_page));
+        assert(temp_page != nullptr);
+        temp_page->Init(new_page, PAGE_SIZE, prev_page, nullptr, nullptr);
+        temp_page->SetLSN(temp_lsn);
+        buffer_pool_manager_->UnpinPage(new_page, true);
+        if (prev_page != INVALID_PAGE_ID) {
+          temp_prev_page->SetNextPageId(new_page);
+          buffer_pool_manager_->UnpinPage(temp_log.prev_page_id_, true);
+        }
+
+      } else if (temp_type == LogRecordType::INSERT) {
         auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(
             temp_log.insert_rid_.GetPageId()));
-        if (temp_page->GetLSN() < temp_log.lsn_) {
-          Tuple temp_old_t;
-          assert(temp_page->UpdateTuple(temp_log.insert_tuple_, &temp_old_t,
-                                        temp_log.insert_rid_,
-                                        nullptr, nullptr, nullptr));
-          temp_page->SetLSN(temp_log.lsn_);
+        if (temp_page->GetLSN() < temp_lsn) {
+          RID temp_rid;
+          assert(temp_page->InsertTuple(temp_log.insert_tuple_, &temp_rid,
+              nullptr, nullptr, nullptr));
+          assert(temp_rid == temp_log.insert_rid_);
+          temp_page->SetLSN(temp_lsn);
         } else {
           LOG_DEBUG("No Insert! Page: %d, Log: %d\n", temp_page->GetLSN(), temp_log.lsn_);
         }
