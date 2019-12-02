@@ -123,7 +123,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     int temp_sz = buffer_used_;
     // no need to swap page here
     std::future<void> fut = std::async(std::launch::async, [=] {
-      bustub::LOG_DEBUG("Flush size: %d\n", temp_sz);
+      bustub::LOG_DEBUG("Async Flush size: %d\n", temp_sz);
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
       char *temp = log_buffer_;
