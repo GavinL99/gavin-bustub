@@ -186,10 +186,11 @@ namespace bustub {
   }
 
   void LogRecovery::TestDeserial() {
-    disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, 0);
+    assert(disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, 0));
     int cursor = 0;
     while (true) {
       LogRecord temp_log;
+      LOG_DEBUG("Cursor: %d\n", cursor);
       if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
         break;
       }

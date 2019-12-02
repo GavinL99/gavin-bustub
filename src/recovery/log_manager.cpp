@@ -129,9 +129,6 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
       bustub::LOG_DEBUG("Finish Async flush\n");
-//      char *temp = log_buffer_;
-//      log_buffer_ = flush_buffer_;
-//      flush_buffer_ = temp;
       persistent_lsn_ = next_lsn_ - 1;
     });
     disk_manager_->SetFlushLogFuture(&fut);
