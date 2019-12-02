@@ -158,7 +158,7 @@ void LogManager::SerializeLog(char* data, LogRecord* log_record) {
   memcpy(data, &log_record->log_record_type_, sizeof(LogRecordType));
   data += sizeof(LogRecordType);
 
-  int32_t log_sz = *reinterpret_cast<const int32_t *>(data);
+  int32_t log_sz = *reinterpret_cast<const int32_t *>(begin_ptr);
   LOG_DEBUG("Serial Size: %d\n", log_sz);
 
 //  data += LogRecord::HEADER_SIZE;
