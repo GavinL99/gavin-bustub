@@ -49,7 +49,7 @@ namespace bustub {
     if (log_record->lsn_ == INVALID_LSN) {
       return false;
     }
-//    assert(log_record->size_ > 0);
+    assert(log_record->size_ > 0);
 //    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     switch (log_record->log_record_type_) {
       case LogRecordType::INSERT:
