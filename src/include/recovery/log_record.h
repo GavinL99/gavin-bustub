@@ -34,20 +34,6 @@ enum class LogRecordType {
   NEWPAGE,
 };
 
-const std::string TYPE_STR[10] =
-    {
-        "INVALID",
-        "INSERT",
-        "MARKDELETE",
-        "APPLYDELETE",
-        "ROLLBACKDELETE",
-        "UPDATE",
-        "BEGIN",
-        "COMMIT",
-        "ABORT",
-        "NEWPAGE",
-    };
-
 /**
  * For every write operation on the table page, you should write ahead a corresponding log record.
  *
