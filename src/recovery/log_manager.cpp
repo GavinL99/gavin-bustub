@@ -63,7 +63,7 @@ void LogManager::flush_helper() {
  * force flush, so can flush first and then swap buffers
  */
 void LogManager::TriggerFlush() {
-  LOG_INFO("Trigger force flush!\n");
+  LOG_DEBUG("Trigger force flush!\n");
   uniq_lock lock(latch_);
   // flush log buffer and then swap!
   char *temp = log_buffer_;
@@ -72,6 +72,7 @@ void LogManager::TriggerFlush() {
   persistent_lsn_ = next_lsn_ - 1;
   disk_manager_->WriteLog(flush_buffer_, buffer_used_);
   buffer_used_ = 0;
+  LOG_DEBUG("Finish Trigger force flush!\n");
 }
 
 
@@ -126,6 +127,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
       bustub::LOG_DEBUG("Async Flush size: %d\n", temp_sz);
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+      bustub::LOG_DEBUG("Finish Async flush\n");
       char *temp = log_buffer_;
       log_buffer_ = flush_buffer_;
       flush_buffer_ = temp;
