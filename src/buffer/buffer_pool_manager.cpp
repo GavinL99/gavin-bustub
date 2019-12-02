@@ -79,6 +79,7 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
     if (temp_page->IsDirty()) {
       // force flush up to page_lsn
       if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        LOG_DEBUG("Trigger: Fetch page\n");
         log_manager_->TriggerFlush();
         assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
       }
@@ -136,6 +137,7 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
     temp_page = pages_ + frame_idx;
     if (temp_page->IsDirty()) {
       if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        LOG_DEBUG("Trigger: Flush page\n");
         log_manager_->TriggerFlush();
         assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
       }
@@ -185,6 +187,7 @@ Page *BufferPoolManager::NewPageImpl(page_id_t *page_id) {
     page_table_[*page_id] = frame_idx;
     if (temp_page->IsDirty()) {
       if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        LOG_DEBUG("Trigger: New page\n");
         log_manager_->TriggerFlush();
         assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
       }
@@ -220,6 +223,7 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
     replacer_->Pin(frame_idx);
     if (temp_page->IsDirty()) {
       if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+        LOG_DEBUG("Trigger: Delete page\n");
         log_manager_->TriggerFlush();
         assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
       }
