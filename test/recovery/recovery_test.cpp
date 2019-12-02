@@ -141,6 +141,7 @@ TEST(RecoveryTest, SerializedTest) {
     bustub_instance->transaction_manager_->Commit(txn1);
 
     bustub_instance->log_manager_->StopFlushThread();
+    LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
     auto *log_recovery = new LogRecovery(bustub_instance->disk_manager_, bustub_instance->buffer_pool_manager_);
 
     ASSERT_FALSE(enable_logging);
