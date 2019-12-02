@@ -194,8 +194,10 @@ TEST(RecoveryTest, RedoTest) {
   auto val1_1 = tuple1.GetValue(&schema, 1);
   auto val1_0 = tuple1.GetValue(&schema, 0);
 
-  ASSERT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
-  ASSERT_TRUE(test_table->InsertTuple(tuple1, &rid1, txn));
+  for (int i = 0; i < 1000; i++) {
+    EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
+    EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid1, txn));
+  }
 
   bustub_instance->transaction_manager_->Commit(txn);
   LOG_INFO("Commit txn");
