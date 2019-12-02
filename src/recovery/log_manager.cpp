@@ -147,6 +147,10 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
 void LogManager::SerializeLog(char* data, LogRecord* log_record) {
   char* begin_ptr = data;
   memcpy(data, &log_record, LogRecord::HEADER_SIZE);
+
+  int32_t log_sz = *reinterpret_cast<const uint32_t *>(data);
+  LOG_DEBUG("Serial Size: %d\n", log_sz);
+
   data += LogRecord::HEADER_SIZE;
   assert(log_record->log_record_type_ != LogRecordType::INVALID);
   assert(log_record->lsn_ != INVALID_LSN);
