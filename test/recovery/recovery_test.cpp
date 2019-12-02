@@ -148,17 +148,6 @@ TEST(RecoveryTest, SerializedTest) {
 
     ASSERT_FALSE(enable_logging);
     log_recovery->TestDeserial();
-//    char *log_buffer = new char[LOG_BUFFER_SIZE];
-//    assert(bustub_instance->disk_manager_->ReadLog(log_buffer, LOG_BUFFER_SIZE, 0));
-//    int cursor = 0;
-//    while (cursor < LOG_BUFFER_SIZE) {
-//      LogRecord temp_log;
-//      LOG_DEBUG("Cursor: %d\n", cursor);
-//      LogRecovery::DeserialHelper(log_buffer + cursor, &temp_log);
-//      LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
-//      cursor += temp_log.GetSize();
-//    }
-//    delete[] log_buffer;
 
     delete txn;
     delete txn1;

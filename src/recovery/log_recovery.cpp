@@ -83,7 +83,7 @@ namespace bustub {
     while (true) {
       LogRecord temp_log;
       LOG_DEBUG("Cursor: %d\n", cursor);
-      if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log) || *log_buffer_ == '\0') {
+      if (*log_buffer_ == '\0' || !DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
         break;
       }
       LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
