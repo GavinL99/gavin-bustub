@@ -22,8 +22,6 @@ namespace bustub {
  * incomplete log record
  */
   bool LogRecovery::DeserializeLogRecord(const char *data, LogRecord *log_record) {
-    assert(data >= log_buffer_);
-    assert(data < log_buffer_ + LOG_BUFFER_SIZE);
     int32_t log_sz = *reinterpret_cast<const uint32_t *>(data);
     assert(log_sz > 0);
     if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
