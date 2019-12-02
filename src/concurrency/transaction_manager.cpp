@@ -32,6 +32,7 @@ Transaction *TransactionManager::Begin(Transaction *txn) {
   if (enable_logging) {
     LogRecord newLog(txn->GetTransactionId(), INVALID_LSN, LogRecordType::BEGIN);
     txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
+    assert(txn->GetPrevLSN() != INVALID_LSN);
   }
 
   txn_map[txn->GetTransactionId()] = txn;
@@ -63,6 +64,7 @@ void TransactionManager::Commit(Transaction *txn) {
     }
     LogRecord newLog(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::COMMIT);
     txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
+    assert(txn->GetPrevLSN() != INVALID_LSN);
   }
 
   // Release all the locks.
@@ -99,6 +101,7 @@ void TransactionManager::Abort(Transaction *txn) {
     }
     LogRecord newLog(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::ABORT);
     txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
+    assert(txn->GetPrevLSN() != INVALID_LSN);
   }
 
   // Release all the locks.

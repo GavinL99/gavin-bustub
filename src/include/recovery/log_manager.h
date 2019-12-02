@@ -54,6 +54,8 @@ class LogManager {
   inline void SetPersistentLSN(lsn_t lsn) { persistent_lsn_ = lsn; }
   inline char *GetLogBuffer() { return log_buffer_; }
 
+  static void SerializeLog(char*, LogRecord*);
+
  private:
   typedef std::unique_lock<std::mutex> uniq_lock;
 
