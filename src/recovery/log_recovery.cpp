@@ -29,7 +29,8 @@ namespace bustub {
     }
     // read header
     memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
-    assert(log_record->size_ > 0 && log_record->lsn_ != INVALID_LSN);
+    assert(log_record->size_ > 0);
+    assert(log_record->lsn_ != INVALID_LSN);
     LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     const char *tuple_data = data + LogRecord::HEADER_SIZE;
 
