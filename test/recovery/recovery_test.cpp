@@ -131,7 +131,7 @@ TEST(RecoveryTest, SerializedTest) {
 
     // insert a ton of tuples
     Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 2; i++) {
       RID rid;
       EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn1));
     }
