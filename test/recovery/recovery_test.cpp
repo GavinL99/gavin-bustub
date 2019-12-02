@@ -140,6 +140,7 @@ TEST(RecoveryTest, SerializedTest) {
 
     bustub_instance->transaction_manager_->Commit(txn1);
 
+    bustub_instance->log_manager_->StopFlushThread();
     auto *log_recovery = new LogRecovery(bustub_instance->disk_manager_, bustub_instance->buffer_pool_manager_);
 
     ASSERT_FALSE(enable_logging);
@@ -154,7 +155,6 @@ TEST(RecoveryTest, SerializedTest) {
       LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
       cursor += temp_log.GetSize();
     }
-
 
     delete txn;
     delete txn1;
