@@ -217,7 +217,6 @@ void TablePage::ApplyDelete(const RID &rid, Transaction *txn, LogManager *log_ma
 
   if (enable_logging) {
     BUSTUB_ASSERT(txn->IsExclusiveLocked(rid), "We must own the exclusive lock!");
-
     LogRecord log_record(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::APPLYDELETE, rid, delete_tuple);
     lsn_t lsn = log_manager->AppendLogRecord(&log_record);
     SetLSN(lsn);
