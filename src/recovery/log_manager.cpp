@@ -12,6 +12,7 @@
 
 #include "recovery/log_manager.h"
 #include "common/logger.h"
+#include "recovery/log_recovery.h"
 
 
 namespace bustub {
@@ -144,6 +145,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
 
 
 void LogManager::SerializeLog(char* data, LogRecord* log_record) {
+  char* begin_ptr = data;
   memcpy(data, &log_record, LogRecord::HEADER_SIZE);
   data += LogRecord::HEADER_SIZE;
   assert(log_record->log_record_type_ != LogRecordType::INVALID);
@@ -173,7 +175,9 @@ void LogManager::SerializeLog(char* data, LogRecord* log_record) {
     default:
       break;
   }
-  LOG_DEBUG("Serialize: %s\n", log_record->ToString().c_str());
+  LogRecord dummy_log;
+  LogRecovery::DeserialHelper(begin_ptr, &dummy_log);
+  LOG_DEBUG("Serialize: %s\n", dummy_log.ToString().c_str());
 }
 
 
