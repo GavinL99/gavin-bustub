@@ -105,16 +105,16 @@ namespace bustub {
     int cursor = 0;
     while (true) {
       // loop over records on one buffer
+      if (*(log_buffer_ + cursor) == '\0') {
+        LOG_DEBUG("Finish scanning all log!\n");
+        break;
+      }
       LogRecord temp_log;
       if (cursor == LOG_BUFFER_SIZE || !DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
         LOG_DEBUG("Hit the boundary, readjust cursor\n");
         offset_ += cursor;
         disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_);
         cursor = 0;
-      }
-      if (*(log_buffer_ + cursor) == '\0') {
-        LOG_DEBUG("Finish scanning all log!\n");
-        break;
       }
       RedoHelper(temp_log, cursor);
       cursor += temp_log.size_;
