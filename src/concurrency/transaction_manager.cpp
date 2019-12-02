@@ -57,6 +57,7 @@ void TransactionManager::Commit(Transaction *txn) {
 
   if (enable_logging) {
     if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
+      LOG_DEBUG("Commit Trigger Flush\n");
       log_manager_->TriggerFlush();
       assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
     }
@@ -92,6 +93,7 @@ void TransactionManager::Abort(Transaction *txn) {
 
   if (enable_logging) {
     if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
+      LOG_DEBUG("Commit Trigger Flush\n");
       log_manager_->TriggerFlush();
       assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
     }
