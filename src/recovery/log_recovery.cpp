@@ -30,14 +30,10 @@ namespace bustub {
       return false;
     }
     // read header
-    DeserialHelper(data, log_record);
-    if (log_record->lsn_ == INVALID_LSN) {
-      return false;
-    }
-    return true;
+    return DeserialHelper(data, log_record);
   }
 
-  void LogRecovery::DeserialHelper(const char *data, LogRecord *log_record) {
+  bool LogRecovery::DeserialHelper(const char *data, LogRecord *log_record) {
 //    memcpy((void *) log_record, data, sizeof(LogRecord::HEADER_SIZE));
     memcpy(&log_record->size_, data, sizeof(int32_t));
     data += sizeof(int32_t);
@@ -50,8 +46,10 @@ namespace bustub {
     memcpy(&log_record->log_record_type_, data, sizeof(LogRecordType));
     data += sizeof(LogRecordType);
 
+    if (log_record->lsn_ == INVALID_LSN) {
+      return false;
+    }
     assert(log_record->size_ > 0);
-    assert(log_record->lsn_ != INVALID_LSN);
 //    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
     switch (log_record->log_record_type_) {
       case LogRecordType::INSERT:
@@ -76,6 +74,7 @@ namespace bustub {
       default:
         break;
     }
+    return true;
   }
 
   void LogRecovery::TestDeserial() {
