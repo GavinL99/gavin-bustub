@@ -23,6 +23,7 @@ namespace bustub {
  */
   bool LogRecovery::DeserializeLogRecord(const char *data, LogRecord *log_record) {
     int32_t log_sz = *reinterpret_cast<const uint32_t *>(data);
+    assert(log_sz > 0);
     if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
       LOG_DEBUG("Deserial Out of Bound!\n");
       return false;
@@ -58,6 +59,20 @@ namespace bustub {
         break;
     }
     return true;
+  }
+
+  void LogRecovery::TestDeserial() {
+    assert(disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, 0));
+    int cursor = 0;
+    while (true) {
+      LogRecord temp_log;
+      LOG_DEBUG("Cursor: %d\n", cursor);
+      if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
+        break;
+      }
+      LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
+      cursor += temp_log.GetSize();
+    }
   }
 
 /*
@@ -187,18 +202,5 @@ namespace bustub {
     lsn_mapping_.clear();
   }
 
-  void LogRecovery::TestDeserial() {
-    assert(disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, 0));
-    int cursor = 0;
-    while (true) {
-      LogRecord temp_log;
-      LOG_DEBUG("Cursor: %d\n", cursor);
-      if (!DeserializeLogRecord(log_buffer_ + cursor, &temp_log)) {
-        break;
-      }
-      LOG_DEBUG("Deserial: %s\n", temp_log.ToString().c_str());
-      cursor += temp_log.GetSize();
-    }
-  }
 
 }  // namespace bustub
