@@ -187,7 +187,8 @@ void LogManager::SerializeLog(char* data, LogRecord* log_record) {
   }
   LogRecord dummy_log;
   LogRecovery::DeserialHelper(begin_ptr, &dummy_log);
-  LOG_DEBUG("Serialize: %s\n", dummy_log.ToString().c_str());
+  LOG_DEBUG("Correct Serialize: %s\n", log_record->ToString().c_str());
+  LOG_DEBUG("Actual Serialize: %s\n", dummy_log.ToString().c_str());
 }
 
 
