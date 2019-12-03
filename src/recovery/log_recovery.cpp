@@ -123,6 +123,7 @@ namespace bustub {
 
   void LogRecovery::RedoHelper(const LogRecord &temp_log, int cursor) {
     lsn_t temp_lsn = temp_log.lsn_;
+    assert(temp_lsn != INVALID_LSN);
     txn_id_t temp_txn = temp_log.txn_id_;
     LogRecordType temp_type = temp_log.log_record_type_;
     LOG_DEBUG("Replay: %s\n", temp_log.ToString().c_str());
