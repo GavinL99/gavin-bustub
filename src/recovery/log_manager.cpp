@@ -90,6 +90,7 @@ namespace bustub {
     while (trigger_flush_flag) {
       LOG_DEBUG("Trigger waiting...\n");
       disk_flush_cv_.wait(lock);
+      LOG_DEBUG("Trigger wake up...\n");
     }
 //  char *temp = log_buffer_;
 //  log_buffer_ = flush_buffer_;
