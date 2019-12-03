@@ -86,6 +86,7 @@ class LogManager {
   std::thread *flush_thread_ __attribute__((__unused__));
 
   std::condition_variable flush_cv_;
+  std::condition_variable disk_flush_cv_;
 
   DiskManager *disk_manager_ __attribute__((__unused__));
 

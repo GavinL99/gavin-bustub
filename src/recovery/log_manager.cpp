@@ -65,13 +65,17 @@ void LogManager::TriggerFlush() {
   LOG_DEBUG("Trigger force flush!\n");
   uniq_lock lock(latch_);
   // flush log buffer and then swap!
-  disk_manager_->WriteLog(log_buffer_, buffer_used_);
-  LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
-  buffer_used_ = 0;
+  while (disk_manager_->HasFlushLogFuture()) {
+    LOG_DEBUG("Trigger waiting...\n");
+    disk_flush_cv_.wait(lock, !disk_manager_->HasFlushLogFuture());
+  }
   char *temp = log_buffer_;
   log_buffer_ = flush_buffer_;
   flush_buffer_ = temp;
   persistent_lsn_ = next_lsn_ - 1;
+  disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+  LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
+  buffer_used_ = 0;
 }
 
 
@@ -111,6 +115,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
       bustub::LOG_DEBUG("Async Flush size: %d, Thread: %d\n", (int) buffer_used_,
                         (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
       disk_manager_->SetFlushLogFuture(nullptr);
+      disk_flush_cv_.notify_one();
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
       bustub::LOG_DEBUG("Finish Async flush\n");
       persistent_lsn_ = next_lsn_ - 1;
