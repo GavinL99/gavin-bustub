@@ -113,8 +113,8 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     // no need to swap page here
     LOG_DEBUG("Set Async Flush Futures\n");
     std::future<void> fut = std::async(std::launch::async, [=] {
-      bustub::LOG_DEBUG("Async Flush size: %d\n", (int) buffer_used_);
-      bustub::LOG_DEBUG("Thread: %d\n", (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
+      bustub::LOG_DEBUG("Async Flush size: %d, Thread: %d\n", (int) buffer_used_,
+                        (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
       bustub::LOG_DEBUG("Finish Async flush\n");
