@@ -115,6 +115,9 @@ namespace bustub {
         offset_ += cursor;
         disk_manager_->ReadLog(log_buffer_, LOG_BUFFER_SIZE, offset_);
         cursor = 0;
+        if (*log_buffer_ == '\0') {
+          break;
+        }
       }
       RedoHelper(temp_log, cursor);
       cursor += temp_log.size_;
