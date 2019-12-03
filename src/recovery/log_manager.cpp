@@ -37,8 +37,7 @@ void LogManager::flush_helper() {
     uniq_lock lock(latch_);
     // auto call unlock: deal with spurious wakeup
     LOG_INFO("Flush helper waiting...\n");
-    flush_cv_.wait_for(lock, log_timeout,
-        [=] {return !enable_logging;});    //
+    flush_cv_.wait_for(lock, log_timeout);    //
     // if timeout, need to swap and set persistent_lsn_
     LOG_DEBUG("Flush helper timeout...\n");
     if (buffer_used_ > 0) {
@@ -67,7 +66,7 @@ void LogManager::TriggerFlush() {
   // flush log buffer and then swap!
   while (disk_manager_->HasFlushLogFuture()) {
     LOG_DEBUG("Trigger waiting...\n");
-    disk_flush_cv_.wait(lock, !disk_manager_->HasFlushLogFuture());
+    disk_flush_cv_.wait(lock);
   }
   char *temp = log_buffer_;
   log_buffer_ = flush_buffer_;
