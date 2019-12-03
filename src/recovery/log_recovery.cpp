@@ -253,7 +253,7 @@ namespace bustub {
           LOG_ERROR("Fail to deserialize log...\n");
           break;
         }
-        LOG_DEBUG("Undo: LSN: %d, actual: %d, map: %d\n", temp_lsn, temp_log.lsn_, temp_lsn);
+//        LOG_DEBUG("Undo: LSN: %d, actual: %d, map: %d\n", temp_lsn, temp_log.lsn_, temp_lsn);
         assert(temp_log.lsn_ == temp_lsn);
         LogRecordType temp_type = temp_log.log_record_type_;
 
@@ -275,7 +275,7 @@ namespace bustub {
           temp_page->UpdateTuple(temp_log.delete_tuple_, &temp_old_t, temp_log.delete_rid_, nullptr, nullptr, nullptr);
           buffer_pool_manager_->UnpinPage(temp_log.delete_rid_.GetPageId(), true);
         } else if (temp_type == LogRecordType::ROLLBACKDELETE) {
-          LOG_ERROR("Shoul not undo rollback!\n");
+          LOG_ERROR("Should not undo rollback!\n");
         } else if (temp_type == LogRecordType::UPDATE) {
           Tuple temp_old_t;
           auto temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(
