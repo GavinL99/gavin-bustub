@@ -65,17 +65,13 @@ void LogManager::TriggerFlush() {
   LOG_DEBUG("Trigger force flush!\n");
   uniq_lock lock(latch_);
   // flush log buffer and then swap!
+  disk_manager_->WriteLog(log_buffer_, buffer_used_);
+  LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
+  buffer_used_ = 0;
   char *temp = log_buffer_;
   log_buffer_ = flush_buffer_;
   flush_buffer_ = temp;
   persistent_lsn_ = next_lsn_ - 1;
-  if (!disk_manager_->HasFlushLogFuture()) {
-    disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-    LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
-    buffer_used_ = 0;
-  } else {
-    LOG_DEBUG("Already have future running\n");
-  }
 }
 
 
