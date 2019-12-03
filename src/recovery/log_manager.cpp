@@ -116,7 +116,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
       persistent_lsn_ = next_lsn_ - 1;
     });
     disk_manager_->SetFlushLogFuture(&fut);
-    flush_cv_.notify_one();
+//    flush_cv_.notify_one();
     buffer_used_ = 0;
   }
   SerializeLog(log_buffer_ + buffer_used_, log_record);
