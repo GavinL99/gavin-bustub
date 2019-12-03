@@ -258,7 +258,7 @@ TEST(RecoveryTest, RedoTest) {
 }
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, DISABLED_UndoTest) {
+TEST(RecoveryTest, UndoTest) {
   remove("test.db");
   remove("test.log");
   BustubInstance *bustub_instance = new BustubInstance("test.db");
