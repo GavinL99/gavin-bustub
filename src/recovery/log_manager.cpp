@@ -63,7 +63,7 @@ namespace bustub {
             disk_manager_->WriteLog(flush_buffer_, buffer_used_);
             trigger_flush_flag = false;
             lock.unlock();
-            flush_thread_cv_.notify_one();
+            disk_flush_cv_.notify_one();
           } else {
             lock.unlock();
             LOG_DEBUG("Timeout flush..\n");
@@ -90,7 +90,6 @@ namespace bustub {
     while (trigger_flush_flag) {
       LOG_DEBUG("Trigger waiting...\n");
       disk_flush_cv_.wait(lock);
-      LOG_DEBUG("Trigger wake up...\n");
     }
 //  char *temp = log_buffer_;
 //  log_buffer_ = flush_buffer_;
