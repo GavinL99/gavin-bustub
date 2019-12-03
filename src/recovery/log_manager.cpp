@@ -38,25 +38,20 @@ void LogManager::flush_helper() {
     // auto call unlock: deal with spurious wakeup
     LOG_INFO("Flush helper waiting...\n");
     flush_cv_.wait_for(lock, log_timeout,
-        [=] {return !enable_logging || disk_manager_->HasFlushLogFuture();});    //
+        [=] {return !enable_logging;});    //
     // if timeout, need to swap and set persistent_lsn_
-    if (!disk_manager_->HasFlushLogFuture()) {
-      LOG_DEBUG("Flush helper timeout...\n");
-      if (buffer_used_ > 0) {
-        char *temp = log_buffer_;
-        log_buffer_ = flush_buffer_;
-        flush_buffer_ = temp;
-        persistent_lsn_ = next_lsn_ - 1;
-      } else {
-        LOG_INFO("No log to flush...\n");
-        continue;
-      }
+    LOG_DEBUG("Flush helper timeout...\n");
+    if (buffer_used_ > 0) {
+      char *temp = log_buffer_;
+      log_buffer_ = flush_buffer_;
+      flush_buffer_ = temp;
+      persistent_lsn_ = next_lsn_ - 1;
     } else {
-      LOG_DEBUG("Flush helper run Async...\n");
+      LOG_INFO("No log to flush...\n");
+      continue;
     }
-
     LOG_INFO("Flush helper wrote to disk: %d\n", (int) buffer_used_);
-    LOG_DEBUG("Thread: %d\n", (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
+//    LOG_DEBUG("Thread: %d\n", (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
     disk_manager_->WriteLog(flush_buffer_, buffer_used_);
     buffer_used_ = 0;
   }
