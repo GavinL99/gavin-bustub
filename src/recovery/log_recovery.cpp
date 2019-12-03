@@ -252,6 +252,7 @@ namespace bustub {
           LOG_ERROR("Fail to deserialize log...\n");
           break;
         }
+        LOG_DEBUG("Undo actual: %d, map: %d\n", temp_log.lsn_, temp_lsn);
         assert(temp_log.lsn_ == temp_lsn);
         LogRecordType temp_type = temp_log.log_record_type_;
 
