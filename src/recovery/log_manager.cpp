@@ -41,7 +41,7 @@ void LogManager::flush_helper() {
         [=] {return !enable_logging || disk_manager_->HasFlushLogFuture();});    //
     // if timeout, need to swap and set persistent_lsn_
     if (!disk_manager_->HasFlushLogFuture()) {
-      LOG_INFO("Flush helper timeout...\n");
+      LOG_DEBUG("Flush helper timeout...\n");
       if (buffer_used_ > 0) {
         char *temp = log_buffer_;
         log_buffer_ = flush_buffer_;
@@ -51,7 +51,10 @@ void LogManager::flush_helper() {
         LOG_INFO("No log to flush...\n");
         continue;
       }
+    } else {
+      LOG_DEBUG("Flush helper run Async...\n");
     }
+
     LOG_INFO("Flush helper wrote to disk: %d\n", (int) buffer_used_);
     disk_manager_->WriteLog(flush_buffer_, buffer_used_);
     buffer_used_ = 0;
@@ -93,21 +96,6 @@ void LogManager::StopFlushThread() {
  * swap buffer, if full or evict dirty, notify flushing thread;
  * you MUST set the log record's lsn within this method
  * @return: lsn that is assigned to this log record
- *
- *
- * example below
- * // First, serialize the header fields(20 bytes in total)
- * log_record.lsn_ = next_lsn_++;
- * memcpy(log_buffer_ + offset_, &log_record, 20);
- * int pos = offset_ + 20;
- *
- * if (log_record.log_record_type_ == LogRecordType::INSERT) {
- *    memcpy(log_buffer_ + pos, &log_record.insert_rid_, sizeof(RID));
- *    pos += sizeof(RID);
- *    // we have provided serialize function for tuple class
- *    log_record.insert_tuple_.SerializeTo(log_buffer_ + pos);
- *  }
- *
  */
 lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
 //  make sure serializeation
