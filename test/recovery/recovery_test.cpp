@@ -286,7 +286,9 @@ TEST(RecoveryTest, UndoTest) {
   auto val_0 = tuple.GetValue(&schema, 0);
   auto val_1 = tuple.GetValue(&schema, 1);
 
-  ASSERT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
+  for (int i = 0; i < 1000; i++) {
+    EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
+  }
 
   LOG_INFO("Table page content is written to disk");
   bustub_instance->buffer_pool_manager_->FlushPage(first_page_id);
