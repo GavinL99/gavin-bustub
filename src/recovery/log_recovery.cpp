@@ -169,7 +169,6 @@ namespace bustub {
         if (prev_page != INVALID_PAGE_ID) {
 //          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
           assert(temp_prev_page->GetNextPageId() == new_page);
-        } else {
           temp_prev_page->SetNextPageId(new_page);
         }
         temp_page->Init(new_page, PAGE_SIZE, prev_page, nullptr, nullptr);
