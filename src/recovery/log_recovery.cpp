@@ -105,7 +105,7 @@ namespace bustub {
     int cursor = 0;
     while (true) {
       // loop over records on one buffer
-      if (*(log_buffer_ + cursor) == '\0') {
+      if (cursor < LOG_BUFFER_SIZE && *(log_buffer_ + cursor) == '\0') {
         LOG_DEBUG("Finish scanning all log!\n");
         break;
       }
