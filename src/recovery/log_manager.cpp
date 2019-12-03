@@ -56,6 +56,7 @@ void LogManager::flush_helper() {
     }
 
     LOG_INFO("Flush helper wrote to disk: %d\n", (int) buffer_used_);
+    LOG_DEBUG("Thread: %d\n", (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
     disk_manager_->WriteLog(flush_buffer_, buffer_used_);
     buffer_used_ = 0;
   }
@@ -113,6 +114,7 @@ lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     LOG_DEBUG("Set Async Flush Futures\n");
     std::future<void> fut = std::async(std::launch::async, [=] {
       bustub::LOG_DEBUG("Async Flush size: %d\n", (int) buffer_used_);
+      bustub::LOG_DEBUG("Thread: %d\n", (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
       disk_manager_->SetFlushLogFuture(nullptr);
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
       bustub::LOG_DEBUG("Finish Async flush\n");
