@@ -84,10 +84,10 @@ namespace bustub {
   void LogManager::TriggerFlush() {
     LOG_DEBUG("Trigger force flush!\n");
     uniq_lock lock(latch_);
-    assert(!just_swapped);
+//    assert(!just_swapped);
     trigger_flush_flag = true;
-    flush_thread_cv_.notify_one();
     while (trigger_flush_flag) {
+      flush_thread_cv_.notify_one();
       LOG_DEBUG("Trigger waiting...\n");
       disk_flush_cv_.wait(lock);
     }
