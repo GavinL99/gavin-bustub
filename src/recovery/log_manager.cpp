@@ -51,6 +51,10 @@ namespace bustub {
         assert(flush_sz_ > 0);
         disk_manager_->WriteLog(flush_buffer_, flush_sz_);
         flush_sz_ = 0;
+        if (trigger_flush_flag) {
+          trigger_flush_flag = false;
+          disk_flush_cv_.notify_one();
+        }
       } else {
         if (buffer_used_ > 0) {
           char *temp = log_buffer_;
