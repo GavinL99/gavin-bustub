@@ -52,6 +52,7 @@ namespace bustub {
         disk_manager_->WriteLog(flush_buffer_, flush_sz_);
         flush_sz_ = 0;
         if (trigger_flush_flag) {
+          LOG_DEBUG("Swap but reset flush...\n");
           trigger_flush_flag = false;
           disk_flush_cv_.notify_one();
         }
