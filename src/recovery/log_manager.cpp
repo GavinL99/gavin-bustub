@@ -81,7 +81,7 @@ namespace bustub {
  * called by bpm when need to evict a dirty page
  * force flush, so can flush first and then swap buffers
  */
-  void LogManager::TriggerFlush(page_id_t page_id) {
+  void LogManager::TriggerFlush() {
     LOG_DEBUG("Trigger force flush!\n");
     uniq_lock lock(latch_);
 //    assert(!just_swapped);
