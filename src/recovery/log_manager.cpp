@@ -88,7 +88,7 @@ namespace bustub {
     trigger_flush_flag = true;
     flush_thread_cv_.notify_one();
     while (trigger_flush_flag) {
-      LOG_DEBUG("Trigger waiting...\n");
+      LOG_DEBUG("Trigger waiting..., just_swap: %d\n", just_swapped);
       disk_flush_cv_.wait(lock);
     }
 //  char *temp = log_buffer_;
