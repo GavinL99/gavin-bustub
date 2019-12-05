@@ -20,6 +20,7 @@ void CheckpointManager::BeginCheckpoint() {
   // in CheckpointManager::EndCheckpoint() instead. This is for grading purposes.
   LOG_DEBUG("Start checkpoint\n");
   transaction_manager_->BlockAllTransactions();
+  LOG_DEBUG("Finish block txns\n");
 //  log_manager_->StopFlushThread();
   buffer_pool_manager_->FlushAllPages();
   LOG_DEBUG("Finish bpm flush\n");
