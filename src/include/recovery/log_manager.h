@@ -45,7 +45,7 @@ class LogManager {
   void RunFlushThread();
   void StopFlushThread();
   // this is called by bpm if need to evict a dirty page
-  void TriggerFlush(page_id_t);
+  void TriggerFlush(page_id_t page_lsn);
 
   lsn_t AppendLogRecord(LogRecord *log_record);
 
