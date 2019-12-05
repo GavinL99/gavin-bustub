@@ -240,6 +240,7 @@ void BufferPoolManager::FlushAllPagesImpl() {
   latch_.lock();
   for (auto page_pair : page_table_) {
     FlushPageImpl(page_pair.first);
+    LOG_DEBUG("Finish flush: %d\n", (int) page_pair.first);
   }
   latch_.unlock();
 }
