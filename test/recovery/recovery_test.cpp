@@ -286,7 +286,7 @@ TEST(RecoveryTest, UndoTest) {
   auto val_0 = tuple.GetValue(&schema, 0);
   auto val_1 = tuple.GetValue(&schema, 1);
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 10; i++) {
     EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
   }
 
