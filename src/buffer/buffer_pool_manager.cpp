@@ -238,6 +238,7 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
 
 void BufferPoolManager::FlushAllPagesImpl() {
   latch_.lock();
+  LOG_DEBUG("Start flush all pages: \n");
   for (auto page_pair : page_table_) {
     FlushPageImpl(page_pair.first);
     LOG_DEBUG("Finish flush: %d\n", (int) page_pair.first);
