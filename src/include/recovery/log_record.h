@@ -168,7 +168,6 @@ class LogRecord {
   // case4: for new page opeartion
   page_id_t prev_page_id_{INVALID_PAGE_ID};
   static const int HEADER_SIZE = 20;
-
 };  // namespace bustub
 
 }  // namespace bustub

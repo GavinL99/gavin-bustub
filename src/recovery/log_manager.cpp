@@ -194,7 +194,7 @@ namespace bustub {
     }
     LogRecord dummy_log;
     LogRecovery::DeserialHelper(begin_ptr, &dummy_log);
-    LOG_DEBUG("Actual Serialize: %s\n", dummy_log.ToString().c_str());
+//    LOG_DEBUG("Actual Serialize: %s\n", dummy_log.ToString().c_str());
   }
 
 
