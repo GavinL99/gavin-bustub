@@ -161,14 +161,18 @@ namespace bustub {
               buffer_pool_manager_->UnpinPage(prev_page, false);
               return;
             }
+            buffer_pool_manager_->UnpinPage(temp_next, false);
           }
         }
-        // if next page not exist, need to allocate new page
+        // if next page not exist or if next_page has lower LSN
+        // need to allocate new page
         temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(&new_page));
         assert(temp_page != nullptr);
+
         if (prev_page != INVALID_PAGE_ID) {
-          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
-          assert(temp_prev_page->GetNextPageId() == new_page);
+//          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
+          assert(temp_prev_page->GetNextPageId() == INVALID_LSN ||
+          temp_prev_page->GetNextPageId() == new_page);
           temp_prev_page->SetNextPageId(new_page);
         }
         temp_page->Init(new_page, PAGE_SIZE, prev_page, nullptr, nullptr);
