@@ -77,7 +77,7 @@ namespace bustub {
     }
     // block the whole log manager....
     uniq_lock lock(latch_);
-    LOG_DEBUG("Trigger force flush: %d, %d!\n", page_lsn, persistent_lsn_);
+    LOG_DEBUG("Trigger force flush: %d, %d!\n", (int) page_lsn, (int) persistent_lsn_);
     // if no need to swap
     if (just_swapped) {
       just_swapped = false;
