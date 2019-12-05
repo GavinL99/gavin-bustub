@@ -26,6 +26,7 @@ void CheckpointManager::BeginCheckpoint() {
 
 void CheckpointManager::EndCheckpoint() {
   // Allow transactions to resume, completing the checkpoint.
+  LOG_DEBUG("Finish checkpoint\n");
   transaction_manager_->ResumeTransactions();
 }
 
