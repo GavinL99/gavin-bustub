@@ -56,7 +56,7 @@ class LogManager {
 
   inline int GetTotalSize() { return total_log_sz; }
 
-  static void SerializeLog(char*, LogRecord*);
+  static void SerializeLog(char *data, LogRecord *log_record);
 
  private:
   using uniq_lock = std::unique_lock<std::mutex>;
