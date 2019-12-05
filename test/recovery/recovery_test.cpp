@@ -92,7 +92,7 @@ TEST(RecoveryTest, DISABLED_FlushLogTest) {
     remove("test.log");
   }
 
-TEST(RecoveryTest, SerializedTest) {
+TEST(RecoveryTest, DISABLED_SerializedTest) {
     remove("test.db");
     remove("test.log");
     BustubInstance *bustub_instance = new BustubInstance("test.db");
@@ -160,7 +160,7 @@ TEST(RecoveryTest, SerializedTest) {
   }
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, RedoTest) {
+TEST(RecoveryTest, DISABLED_RedoTest) {
   remove("test.db");
   remove("test.log");
 
@@ -258,7 +258,7 @@ TEST(RecoveryTest, RedoTest) {
 }
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, UndoTest) {
+TEST(RecoveryTest, DISABLED_UndoTest) {
   remove("test.db");
   remove("test.log");
   BustubInstance *bustub_instance = new BustubInstance("test.db");
