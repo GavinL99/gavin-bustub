@@ -51,6 +51,9 @@ namespace bustub {
         assert(flush_sz_ > 0);
         disk_manager_->WriteLog(flush_buffer_, flush_sz_);
         flush_sz_ = 0;
+
+
+
         if (trigger_flush_flag) {
           LOG_DEBUG("Swap but reset flush...\n");
           trigger_flush_flag = false;
@@ -87,22 +90,23 @@ namespace bustub {
  * force flush, so can flush first and then swap buffers
  */
   void LogManager::TriggerFlush() {
-    LOG_DEBUG("Trigger force flush!\n");
-    uniq_lock lock(latch_);
-//    assert(!just_swapped);
-    trigger_flush_flag = true;
-    flush_thread_cv_.notify_one();
-    while (trigger_flush_flag) {
-      LOG_DEBUG("Trigger waiting..., just_swap: %d\n", just_swapped);
-      disk_flush_cv_.wait(lock);
-    }
-//  char *temp = log_buffer_;
-//  log_buffer_ = flush_buffer_;
-//  flush_buffer_ = temp;
-//  persistent_lsn_ = next_lsn_ - 1;
-//  disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-    LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
-    buffer_used_ = 0;
+//    LOG_DEBUG("Trigger force flush!\n");
+//    uniq_lock lock(latch_);
+////    assert(!just_swapped);
+//    trigger_flush_flag = true;
+//    flush_thread_cv_.notify_one();
+//    while (trigger_flush_flag) {
+//      LOG_DEBUG("Trigger waiting..., just_swap: %d\n", just_swapped);
+//      disk_flush_cv_.wait(lock);
+//    }
+////  char *temp = log_buffer_;
+////  log_buffer_ = flush_buffer_;
+////  flush_buffer_ = temp;
+////  persistent_lsn_ = next_lsn_ - 1;
+////  disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+//    LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
+//    buffer_used_ = 0;
+  return;
   }
 
 
@@ -153,12 +157,15 @@ namespace bustub {
 //    swap_cv_.wait(lock);
       flush_sz_ = buffer_used_;
       buffer_used_ = 0;
-      flush_thread_cv_.notify_one();
     }
     SerializeLog(log_buffer_ + buffer_used_, log_record);
     assert(log_record->size_ > 0 && log_record->lsn_ != INVALID_LSN);
     buffer_used_ += log_record->size_;
     total_log_sz += log_record->size_;
+    if (just_swapped) {
+      lock.unlock();
+      flush_thread_cv_.notify_one();
+    }
     return log_record->lsn_;
   }
 
