@@ -167,7 +167,7 @@ namespace bustub {
         temp_page = reinterpret_cast<TablePage *>(buffer_pool_manager_->NewPage(&new_page));
         assert(temp_page != nullptr);
         if (prev_page != INVALID_PAGE_ID) {
-//          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
+          LOG_DEBUG("Next page: %d, new_page: %d\n", temp_prev_page->GetNextPageId(), new_page);
           assert(temp_prev_page->GetNextPageId() == new_page);
           temp_prev_page->SetNextPageId(new_page);
         }
