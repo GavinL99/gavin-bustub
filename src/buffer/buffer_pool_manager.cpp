@@ -256,7 +256,7 @@ void BufferPoolManager::FlushAllPagesImpl() {
       }
       // not dirty anymore...
       temp_page->is_dirty_ = false;
-      LOG_DEBUG("Finish flush: %d\n", (int) page_id);
+//      LOG_DEBUG("Finish flush: %d\n", (int) page_id);
     }
   }
   latch_.unlock();
