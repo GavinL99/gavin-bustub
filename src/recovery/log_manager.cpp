@@ -138,10 +138,14 @@ namespace bustub {
   void LogManager::StopFlushThread() {
     LOG_INFO("Stop flush thread...\n");
     uniq_lock lock(latch_);
-    enable_logging = false;
-    flush_thread_cv_.notify_one();
-    flush_thread_->join();
-    delete flush_thread_;
+    if (enable_logging) {
+      enable_logging = false;
+      lock.unlock();
+      flush_thread_cv_.notify_one();
+      flush_thread_->join();
+      delete flush_thread_;
+
+    }
   }
 
 /*
