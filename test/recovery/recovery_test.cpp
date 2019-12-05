@@ -109,7 +109,7 @@ TEST(RecoveryTest, SerializedTest) {
     auto *test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
                                      bustub_instance->log_manager_, txn);
 
-    bustub_instance->log_manager_->TriggerFlush()txn->GetPrevLSN();
+    bustub_instance->log_manager_->TriggerFlush(txn->GetPrevLSN());
     LOG_INFO("Pers LSN: %d\n", bustub_instance->log_manager_->GetPersistentLSN());
 
     bustub_instance->transaction_manager_->Commit(txn);
