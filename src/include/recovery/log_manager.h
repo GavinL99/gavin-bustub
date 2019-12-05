@@ -59,7 +59,7 @@ class LogManager {
   static void SerializeLog(char*, LogRecord*);
 
  private:
-  typedef std::unique_lock<std::mutex> uniq_lock;
+  using uniq_lock = std::unique_lock<std::mutex>;
 
   // TODO(students): you may add your own member variables
 
