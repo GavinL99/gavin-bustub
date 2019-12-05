@@ -80,6 +80,7 @@ namespace bustub {
     LOG_DEBUG("Trigger force flush: %d, %d!\n", (int) page_lsn, (int) persistent_lsn_);
     // if no need to swap
     if (just_swapped) {
+      LOG_INFO("Flush no swap...\n");
       just_swapped = false;
       // no need to set persistent lsn
       assert(flush_sz_ > 0);
@@ -88,6 +89,7 @@ namespace bustub {
     }
     // if still not fulfilled, swap buffers here and flush again
     if (page_lsn > persistent_lsn_) {
+      LOG_INFO("Flush swap...%d, %d!\n", (int) page_lsn, (int) persistent_lsn_);
       char *temp = log_buffer_;
       log_buffer_ = flush_buffer_;
       flush_buffer_ = temp;
