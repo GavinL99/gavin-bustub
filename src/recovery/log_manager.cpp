@@ -41,7 +41,9 @@ namespace bustub {
       flush_thread_cv_.wait_for(lock, log_timeout, [=] { return !enable_logging; });
       // if timeout, need to swap and set persistent_lsn_
       LOG_DEBUG("Flush helper wake up...\n");
+
       // if flush_sz_ == 0, then timeout and flush
+      // no need to swap and update buffer_used
       if (just_swapped) {
         // async no need to block
         LOG_DEBUG("Flush from append async flush\n");
@@ -51,37 +53,44 @@ namespace bustub {
         assert(flush_sz_ > 0);
         disk_manager_->WriteLog(flush_buffer_, flush_sz_);
         flush_sz_ = 0;
-
-
-
-        if (trigger_flush_flag) {
-          LOG_DEBUG("Swap but reset flush...\n");
-          trigger_flush_flag = false;
-          disk_flush_cv_.notify_one();
-        }
-      } else {
+      }
+//      else {
+//        if (buffer_used_ > 0) {
+//          char *temp = log_buffer_;
+//          log_buffer_ = flush_buffer_;
+//          flush_buffer_ = temp;
+//          persistent_lsn_ = next_lsn_ - 1;
+//          // need to wake up blocked bpm thread
+//          if (trigger_flush_flag) {
+//            LOG_DEBUG("Force flush from trigger\n");
+//            disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+//            trigger_flush_flag = false;
+//            lock.unlock();
+//            disk_flush_cv_.notify_one();
+//          } else {
+//            lock.unlock();
+//            LOG_DEBUG("Timeout flush..\n");
+//            disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+//          }
+//          buffer_used_ = 0;
+//        } else {
+//          LOG_INFO("No log to flush...\n");
+//        }
+//      }
+      else {
         if (buffer_used_ > 0) {
           char *temp = log_buffer_;
           log_buffer_ = flush_buffer_;
           flush_buffer_ = temp;
           persistent_lsn_ = next_lsn_ - 1;
-          // need to wake up blocked bpm thread
-          if (trigger_flush_flag) {
-            LOG_DEBUG("Force flush from trigger\n");
-            disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-            trigger_flush_flag = false;
-            lock.unlock();
-            disk_flush_cv_.notify_one();
-          } else {
-            lock.unlock();
-            LOG_DEBUG("Timeout flush..\n");
-            disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-          }
-          buffer_used_ = 0;
+          lock.unlock();
+          LOG_DEBUG("Timeout flush..\n");
+          disk_manager_->WriteLog(flush_buffer_, buffer_used_);
         } else {
           LOG_INFO("No log to flush...\n");
         }
       }
+
     }
   }
 
@@ -89,25 +98,38 @@ namespace bustub {
  * called by bpm when need to evict a dirty page
  * force flush, so can flush first and then swap buffers
  */
-  void LogManager::TriggerFlush() {
-//    LOG_DEBUG("Trigger force flush!\n");
-//    uniq_lock lock(latch_);
-////    assert(!just_swapped);
+  void LogManager::TriggerFlush(page_id_t page_lsn) {
+    if (page_lsn <= persistent_lsn_) {
+      return;
+    }
+    uniq_lock lock(latch_);
+    LOG_DEBUG("Trigger force flush!\n");
 //    trigger_flush_flag = true;
 //    flush_thread_cv_.notify_one();
 //    while (trigger_flush_flag) {
 //      LOG_DEBUG("Trigger waiting..., just_swap: %d\n", just_swapped);
 //      disk_flush_cv_.wait(lock);
 //    }
-////  char *temp = log_buffer_;
-////  log_buffer_ = flush_buffer_;
-////  flush_buffer_ = temp;
-////  persistent_lsn_ = next_lsn_ - 1;
-////  disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+//    // no need to set buffer_used_ here!
 //    LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
-//    buffer_used_ = 0;
-  return;
+    if (just_swapped) {
+      just_swapped = false;
+      // no need to set persistent lsn
+      assert(flush_sz_ > 0);
+      disk_manager_->WriteLog(flush_buffer_, flush_sz_);
+      flush_sz_ = 0;
+    }
+    if (page_lsn > persistent_lsn_) {
+      char *temp = log_buffer_;
+      log_buffer_ = flush_buffer_;
+      flush_buffer_ = temp;
+      persistent_lsn_ = next_lsn_ - 1;
+      disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+      buffer_used_ = 0;
+      assert(page_lsn <= persistent_lsn_);
+    }
   }
+
 
 
 /*
@@ -115,6 +137,7 @@ namespace bustub {
  */
   void LogManager::StopFlushThread() {
     LOG_INFO("Stop flush thread...\n");
+    uniq_lock lock(latch_);
     enable_logging = false;
     flush_thread_cv_.notify_one();
     flush_thread_->join();

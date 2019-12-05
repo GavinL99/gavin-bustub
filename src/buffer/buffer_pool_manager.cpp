@@ -80,7 +80,7 @@ Page *BufferPoolManager::FetchPageImpl(page_id_t page_id) {
       // force flush up to page_lsn
       if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
         LOG_DEBUG("Trigger: Fetch page\n");
-        log_manager_->TriggerFlush();
+        log_manager_->TriggerFlush(temp_page->GetLSN());
         assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
       }
       disk_manager_->WritePage(old_page_id, temp_page->data_);
@@ -138,7 +138,7 @@ bool BufferPoolManager::FlushPageImpl(page_id_t page_id) {
     if (temp_page->IsDirty()) {
       if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
         LOG_DEBUG("Trigger: Flush page\n");
-        log_manager_->TriggerFlush();
+        log_manager_->TriggerFlush(temp_page->GetLSN());
         assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
       }
       disk_manager_->WritePage(page_id, temp_page->data_);
