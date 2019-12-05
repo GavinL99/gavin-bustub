@@ -95,6 +95,7 @@ namespace bustub {
       flush_buffer_ = temp;
       persistent_lsn_ = next_lsn_ - 1;
       disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+      LOG_INFO("Finish writing...%d, %d!\n", (int) page_lsn, (int) persistent_lsn_);
       buffer_used_ = 0;
       assert(page_lsn <= persistent_lsn_);
     }
