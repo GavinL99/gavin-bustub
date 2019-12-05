@@ -39,45 +39,18 @@ namespace bustub {
       LOG_INFO("Flush helper waiting...\n");
       // if spurious wakeup, block again
       flush_thread_cv_.wait_for(lock, log_timeout, [=] { return !enable_logging; });
-      // if timeout, need to swap and set persistent_lsn_
       LOG_DEBUG("Flush helper wake up...\n");
-
-      // if flush_sz_ == 0, then timeout and flush
       // no need to swap and update buffer_used
       if (just_swapped) {
-        // async no need to block
         LOG_DEBUG("Flush from append async flush\n");
+        // async no need to block
         lock.unlock();
         just_swapped = false;
         // no need to set persistent lsn
         assert(flush_sz_ > 0);
         disk_manager_->WriteLog(flush_buffer_, flush_sz_);
         flush_sz_ = 0;
-      }
-//      else {
-//        if (buffer_used_ > 0) {
-//          char *temp = log_buffer_;
-//          log_buffer_ = flush_buffer_;
-//          flush_buffer_ = temp;
-//          persistent_lsn_ = next_lsn_ - 1;
-//          // need to wake up blocked bpm thread
-//          if (trigger_flush_flag) {
-//            LOG_DEBUG("Force flush from trigger\n");
-//            disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-//            trigger_flush_flag = false;
-//            lock.unlock();
-//            disk_flush_cv_.notify_one();
-//          } else {
-//            lock.unlock();
-//            LOG_DEBUG("Timeout flush..\n");
-//            disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-//          }
-//          buffer_used_ = 0;
-//        } else {
-//          LOG_INFO("No log to flush...\n");
-//        }
-//      }
-      else {
+      } else {
         if (buffer_used_ > 0) {
           char *temp = log_buffer_;
           log_buffer_ = flush_buffer_;
@@ -102,16 +75,10 @@ namespace bustub {
     if (page_lsn <= persistent_lsn_) {
       return;
     }
+    // block the whole log manager....
     uniq_lock lock(latch_);
     LOG_DEBUG("Trigger force flush!\n");
-//    trigger_flush_flag = true;
-//    flush_thread_cv_.notify_one();
-//    while (trigger_flush_flag) {
-//      LOG_DEBUG("Trigger waiting..., just_swap: %d\n", just_swapped);
-//      disk_flush_cv_.wait(lock);
-//    }
-//    // no need to set buffer_used_ here!
-//    LOG_DEBUG("Finish Trigger force flush: %d!\n", (int) buffer_used_);
+    // if no need to swap
     if (just_swapped) {
       just_swapped = false;
       // no need to set persistent lsn
@@ -119,6 +86,7 @@ namespace bustub {
       disk_manager_->WriteLog(flush_buffer_, flush_sz_);
       flush_sz_ = 0;
     }
+    // if still not fulfilled, swap buffers here and flush again
     if (page_lsn > persistent_lsn_) {
       char *temp = log_buffer_;
       log_buffer_ = flush_buffer_;
@@ -144,7 +112,6 @@ namespace bustub {
       flush_thread_cv_.notify_one();
       flush_thread_->join();
       delete flush_thread_;
-
     }
   }
 
@@ -156,10 +123,10 @@ namespace bustub {
  * @return: lsn that is assigned to this log record
  */
   lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
-//  make sure serializeation
+    //  make sure serializeation
     uniq_lock lock(latch_);
     log_record->lsn_ = next_lsn_++;
-//  if need to swap and flush
+    //  if need to swap and async flush
     if (buffer_used_ + log_record->size_ > LOG_BUFFER_SIZE) {
       persistent_lsn_ = next_lsn_ - 2;
       char *temp = log_buffer_;
@@ -167,21 +134,6 @@ namespace bustub {
       flush_buffer_ = temp;
       // make sure not swap twice
       just_swapped = true;
-
-      // need to null future pointer first and write
-      // no need to swap page here
-//    LOG_DEBUG("Set Async Flush Futures\n");
-//    std::future<void> fut = std::async(std::launch::async, [=] {
-//      bustub::LOG_DEBUG("Async Flush size: %d, Thread: %d\n", (int) buffer_used_,
-//                        (int) std::hash<std::thread::id>{}(std::this_thread::get_id()));
-//      disk_manager_->SetFlushLogFuture(nullptr);
-//      disk_flush_cv_.notify_one();
-//      disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-//      bustub::LOG_DEBUG("Finish Async flush\n");
-//      persistent_lsn_ = next_lsn_ - 1;
-//    });
-//    disk_manager_->SetFlushLogFuture(&fut);
-//    swap_cv_.wait(lock);
       flush_sz_ = buffer_used_;
       buffer_used_ = 0;
     }

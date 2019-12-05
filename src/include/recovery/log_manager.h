@@ -80,7 +80,7 @@ class LogManager {
   char *log_buffer_;
   char *flush_buffer_;
 
-  // protect buffers (swap and write)
+  // global latch for log manager
   std::mutex latch_;
 
   std::thread *flush_thread_ __attribute__((__unused__));
