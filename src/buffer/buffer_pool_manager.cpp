@@ -237,11 +237,27 @@ bool BufferPoolManager::DeletePageImpl(page_id_t page_id) {
 }
 
 void BufferPoolManager::FlushAllPagesImpl() {
+  frame_id_t frame_idx = -1;
+  Page *temp_page = nullptr;
   latch_.lock();
-  LOG_DEBUG("Start flush all pages: \n");
   for (auto page_pair : page_table_) {
-    FlushPageImpl(page_pair.first);
-    LOG_DEBUG("Finish flush: %d\n", (int) page_pair.first);
+    page_id_t page_id = page_pair.first;
+    if (page_table_.find(page_id) != page_table_.end()) {
+      // update page_table, free_list
+      frame_idx = page_table_[page_id];
+      temp_page = pages_ + frame_idx;
+      if (temp_page->IsDirty()) {
+        if (enable_logging && temp_page->GetLSN() > log_manager_->GetPersistentLSN()) {
+          LOG_DEBUG("Trigger: Flush page: %d\n", (int) page_id);
+          log_manager_->TriggerFlush(temp_page->GetLSN());
+          assert(temp_page->GetLSN() <= log_manager_->GetPersistentLSN());
+        }
+        disk_manager_->WritePage(page_id, temp_page->data_);
+      }
+      // not dirty anymore...
+      temp_page->is_dirty_ = false;
+      LOG_DEBUG("Finish flush: %d\n", (int) page_id);
+    }
   }
   latch_.unlock();
 }
