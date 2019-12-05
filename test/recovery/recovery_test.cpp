@@ -27,7 +27,7 @@
 namespace bustub {
 
 
-TEST(RecoveryTest, DISABLED_FlushLogTest) {
+TEST(RecoveryTest, FlushLogTest) {
     remove("test.db");
     remove("test.log");
     BustubInstance *bustub_instance = new BustubInstance("test.db");
