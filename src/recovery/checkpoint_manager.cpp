@@ -21,7 +21,6 @@ void CheckpointManager::BeginCheckpoint() {
   LOG_DEBUG("Start checkpoint\n");
   transaction_manager_->BlockAllTransactions();
   LOG_DEBUG("Finish block txns\n");
-//  log_manager_->StopFlushThread();
   buffer_pool_manager_->FlushAllPages();
   LOG_DEBUG("Finish bpm flush\n");
   log_manager_->TriggerFlush(log_manager_->GetNextLSN() - 1);
@@ -30,7 +29,6 @@ void CheckpointManager::BeginCheckpoint() {
 void CheckpointManager::EndCheckpoint() {
   // Allow transactions to resume, completing the checkpoint.
   LOG_DEBUG("Finish checkpoint\n");
-//  log_manager_->RunFlushThread();
   transaction_manager_->ResumeTransactions();
 }
 
