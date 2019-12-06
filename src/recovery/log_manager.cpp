@@ -153,7 +153,6 @@ namespace bustub {
 
 
   void LogManager::SerializeLog(char *data, LogRecord *log_record) {
-    char *begin_ptr = data;
 //  memcpy(data, &log_record, LogRecord::HEADER_SIZE);
     memcpy(data, &log_record->size_, sizeof(int32_t));
     data += sizeof(int32_t);
@@ -195,9 +194,6 @@ namespace bustub {
       default:
         break;
     }
-//    LogRecord dummy_log;
-//    LogRecovery::DeserialHelper(begin_ptr, &dummy_log);
-//    LOG_DEBUG("Actual Serialize: %s\n", dummy_log.ToString().c_str());
   }
 
 
