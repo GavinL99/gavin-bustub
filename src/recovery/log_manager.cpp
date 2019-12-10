@@ -187,7 +187,7 @@ namespace bustub {
         memcpy(data, &log_record->update_rid_, sizeof(RID));
         data += sizeof(RID);
         log_record->old_tuple_.SerializeTo(data);
-        data += sizeof(log_record->old_tuple_.GetLength()) + sizeof(int32_t);
+        data += (log_record->old_tuple_.GetLength() + sizeof(uint32_t));
         log_record->new_tuple_.SerializeTo(data);
         break;
       case LogRecordType::NEWPAGE:

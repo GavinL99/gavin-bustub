@@ -68,8 +68,8 @@ namespace bustub {
         log_record->old_tuple_.DeserializeFrom(data + sizeof(RID));
         LOG_DEBUG("Old tuple done: %d\n", log_record->old_tuple_.GetLength());
         log_record->new_tuple_.DeserializeFrom(data + sizeof(RID) +
-                                               sizeof(int32_t) + log_record->old_tuple_.GetLength());
-        LOG_DEBUG("New tuple done\n");
+                                               sizeof(uint32_t) + log_record->old_tuple_.GetLength());
+        LOG_DEBUG("New tuple done: %d\n", log_record->new_tuple_.GetLength());
         break;
       case LogRecordType::NEWPAGE:
         log_record->prev_page_id_ = *reinterpret_cast<const page_id_t *>(data);
