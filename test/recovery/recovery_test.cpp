@@ -343,6 +343,99 @@ TEST(RecoveryTest, UndoTest) {
   remove("test.log");
 }
 
+
+// NOLINTNEXTLINE
+TEST(RecoveryTest, TestWithUpdate) {
+    remove("test.db");
+    remove("test.log");
+
+    BustubInstance *bustub_instance = new BustubInstance("test.db");
+
+    ASSERT_FALSE(enable_logging);
+    LOG_INFO("Skip"
+             " system recovering...");
+
+    bustub_instance->log_manager_->RunFlushThread();
+    ASSERT_TRUE(enable_logging);
+    LOG_INFO("System logging thread running...");
+
+    LOG_INFO("Create a test table");
+    Transaction *txn = bustub_instance->transaction_manager_->Begin();
+    auto *test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
+                                     bustub_instance->log_manager_, txn);
+    page_id_t first_page_id = test_table->GetFirstPageId();
+
+    RID rid;
+    Tuple old_tuple;
+    Column col1{"a", TypeId::VARCHAR, 20};
+    Column col2{"b", TypeId::SMALLINT};
+    std::vector<Column> cols{col1, col2};
+    Schema schema{cols};
+    const Tuple tuple = ConstructTuple(&schema);
+    const Tuple tuple1 = ConstructTuple(&schema);
+
+    auto val_1 = tuple.GetValue(&schema, 1);
+    auto val_0 = tuple.GetValue(&schema, 0);
+    auto val1_1 = tuple1.GetValue(&schema, 1);
+    auto val1_0 = tuple1.GetValue(&schema, 0);
+
+    EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
+    EXPECT_TRUE(test_table->UpdateTuple(tuple1, rid, txn));
+    ASSERT_TRUE(test_table->GetTuple(rid, &old_tuple, txn));
+    ASSERT_EQ(old_tuple.GetValue(&schema, 1).CompareEquals(val1_1), CmpBool::CmpTrue);
+    ASSERT_EQ(old_tuple.GetValue(&schema, 0).CompareEquals(val1_0), CmpBool::CmpTrue);
+
+
+    bustub_instance->transaction_manager_->Commit(txn);
+    LOG_INFO("Commit txn");
+
+    delete txn;
+    delete test_table;
+
+    LOG_INFO("Shutdown System");
+    delete bustub_instance;
+
+    LOG_INFO("System restart...");
+    bustub_instance = new BustubInstance("test.db");
+
+    ASSERT_FALSE(enable_logging);
+    LOG_INFO("Check if tuple is not in table before recovery");
+    txn = bustub_instance->transaction_manager_->Begin();
+    test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
+                               bustub_instance->log_manager_, first_page_id);
+    ASSERT_FALSE(test_table->GetTuple(rid, &old_tuple, txn));
+    bustub_instance->transaction_manager_->Commit(txn);
+    delete txn;
+
+    LOG_INFO("Begin recovery");
+    auto *log_recovery = new LogRecovery(bustub_instance->disk_manager_, bustub_instance->buffer_pool_manager_);
+
+    ASSERT_FALSE(enable_logging);
+
+    LOG_INFO("Redo underway...");
+    log_recovery->Redo();
+    LOG_INFO("Undo underway...");
+    log_recovery->Undo();
+
+    LOG_INFO("Check if recovery success");
+    txn = bustub_instance->transaction_manager_->Begin();
+    delete test_table;
+    test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
+                               bustub_instance->log_manager_, first_page_id);
+
+    ASSERT_TRUE(test_table->GetTuple(rid, &old_tuple, txn));
+    bustub_instance->transaction_manager_->Commit(txn);
+    delete txn;
+    delete test_table;
+    delete log_recovery;
+
+    delete bustub_instance;
+    LOG_INFO("Tearing down the system..");
+    remove("test.db");
+    remove("test.log");
+  }
+
+
 // NOLINTNEXTLINE
 TEST(RecoveryTest, CheckpointTest) {
   remove("test.db");
