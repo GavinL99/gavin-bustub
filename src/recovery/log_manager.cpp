@@ -127,8 +127,9 @@ namespace bustub {
  */
   lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     //  make sure serializeation
-    assert(log_record->lsn_ != INVALID_LSN);
     assert(log_record->size_ > 0);
+    assert(log_record->log_record_type_ != LogRecordType::INVALID);
+
     uniq_lock lock(latch_);
     log_record->lsn_ = next_lsn_++;
     //  if need to swap and async flush
