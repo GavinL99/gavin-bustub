@@ -66,8 +66,10 @@ namespace bustub {
       case LogRecordType::UPDATE:
         log_record->update_rid_ = *reinterpret_cast<const RID *>(data);
         log_record->old_tuple_.DeserializeFrom(data + sizeof(RID));
+        LOG_DEBUG("Old tuple done\n");
         log_record->new_tuple_.DeserializeFrom(data + sizeof(RID) +
                                                sizeof(int32_t) + log_record->old_tuple_.GetLength());
+        LOG_DEBUG("New tuple done\n");
         break;
       case LogRecordType::NEWPAGE:
         log_record->prev_page_id_ = *reinterpret_cast<const page_id_t *>(data);
