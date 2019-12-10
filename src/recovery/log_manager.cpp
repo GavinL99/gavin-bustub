@@ -127,6 +127,8 @@ namespace bustub {
  */
   lsn_t LogManager::AppendLogRecord(LogRecord *log_record) {
     //  make sure serializeation
+    assert(log_record->lsn_ != INVALID_LSN);
+    assert(log_record->size_ > 0);
     uniq_lock lock(latch_);
     log_record->lsn_ = next_lsn_++;
     //  if need to swap and async flush
@@ -143,7 +145,6 @@ namespace bustub {
     SerializeLog(log_buffer_ + buffer_used_, log_record);
     assert(log_record->size_ > 0 && log_record->lsn_ != INVALID_LSN);
     buffer_used_ += log_record->size_;
-    total_log_sz += log_record->size_;
     if (just_swapped) {
       lock.unlock();
       flush_thread_cv_.notify_one();
@@ -194,6 +195,9 @@ namespace bustub {
       default:
         break;
     }
+//    LogRecord dummy_log;
+//    LogRecovery::DeserialHelper(begin_ptr, &dummy_log);
+//    LOG_DEBUG("Actual Serialize: %s\n", dummy_log.ToString().c_str());
   }
 
 

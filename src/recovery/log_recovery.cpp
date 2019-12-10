@@ -23,7 +23,7 @@ namespace bustub {
  */
   bool LogRecovery::DeserializeLogRecord(const char *data, LogRecord *log_record) {
     int32_t log_sz = *reinterpret_cast<const int32_t *>(data);
-    if (data + log_sz > log_buffer_ + LOG_BUFFER_SIZE) {
+    if (data + log_sz - log_buffer_ > LOG_BUFFER_SIZE) {
       LOG_DEBUG("Deserial Out of Bound!\n");
       return false;
     }
@@ -50,7 +50,9 @@ namespace bustub {
 
     assert(log_record->lsn_ != INVALID_LSN);
     assert(log_record->size_ > 0);
-//    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
+//    if (log_record->size_ == 0) {
+//      LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
+//    }
     switch (log_record->log_record_type_) {
       case LogRecordType::INSERT:
         log_record->insert_rid_ = *reinterpret_cast<const RID *>(data);
@@ -124,10 +126,9 @@ namespace bustub {
 
   void LogRecovery::RedoHelper(const LogRecord &temp_log, int cursor) {
     lsn_t temp_lsn = temp_log.lsn_;
-    assert(temp_lsn != INVALID_LSN);
     txn_id_t temp_txn = temp_log.txn_id_;
     LogRecordType temp_type = temp_log.log_record_type_;
-    LOG_DEBUG("Replay: %s\n", temp_log.ToString().c_str());
+//    LOG_DEBUG("Replay: %s\n", temp_log.ToString().c_str());
 
     if (temp_type == LogRecordType::COMMIT || temp_type == LogRecordType::ABORT) {
       active_txn_.erase(temp_txn);
