@@ -66,7 +66,7 @@ namespace bustub {
       case LogRecordType::UPDATE:
         log_record->update_rid_ = *reinterpret_cast<const RID *>(data);
         log_record->old_tuple_.DeserializeFrom(data + sizeof(RID));
-        LOG_DEBUG("Old tuple done: %s\n", old_tuple_.ToString().c_str());
+        LOG_DEBUG("Old tuple done: %d\n", log_record->old_tuple_.GetLength());
         log_record->new_tuple_.DeserializeFrom(data + sizeof(RID) +
                                                sizeof(int32_t) + log_record->old_tuple_.GetLength());
         LOG_DEBUG("New tuple done\n");
