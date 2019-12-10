@@ -50,9 +50,8 @@ namespace bustub {
 
     assert(log_record->lsn_ != INVALID_LSN);
     assert(log_record->size_ > 0);
-//    if (log_record->size_ == 0) {
-//      LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
-//    }
+    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
+
     switch (log_record->log_record_type_) {
       case LogRecordType::INSERT:
         log_record->insert_rid_ = *reinterpret_cast<const RID *>(data);
