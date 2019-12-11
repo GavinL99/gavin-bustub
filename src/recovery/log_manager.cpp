@@ -38,7 +38,7 @@ namespace bustub {
       // auto call unlock: deal with spurious wakeup
       LOG_INFO("Flush helper waiting...\n");
       // if spurious wakeup, block again
-      flush_thread_cv_.wait_for(lock, log_timeout, [=] { return !enable_logging; });
+      flush_thread_cv_.wait_for(lock, log_timeout);
       LOG_DEBUG("Flush helper wake up...\n");
       // no need to swap and update buffer_used
       if (just_swapped) {
