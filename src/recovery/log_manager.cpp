@@ -52,12 +52,14 @@ namespace bustub {
         flush_sz_ = 0;
       } else {
         if (buffer_used_ > 0) {
+          // hold the lock to swap buffer and modify buffer_sz, persis_lsn
           int temp_buffer_sz = buffer_used_;
           buffer_used_ = 0;
           char *temp = log_buffer_;
           log_buffer_ = flush_buffer_;
           flush_buffer_ = temp;
           persistent_lsn_ = next_lsn_ - 1;
+          // unlock and flush
           lock.unlock();
           LOG_DEBUG("Timeout flush.. %d\n", temp_buffer_sz);
           disk_manager_->WriteLog(flush_buffer_, temp_buffer_sz);
