@@ -525,6 +525,7 @@ TEST(RecoveryTest, UndoTestWithUpdate) {
 TEST(RecoveryTest, MultiTxnTest) {
     remove("test.db");
     remove("test.log");
+    log_timeout = std::chrono::seconds(1);
 
     BustubInstance *bustub_instance = new BustubInstance("test.db");
 
