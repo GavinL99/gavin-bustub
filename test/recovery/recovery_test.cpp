@@ -570,6 +570,7 @@ TEST(RecoveryTest, MultiTxnTest) {
     LOG_INFO("Commit txn, abort txn1");
 
     delete txn;
+    delete txn1;
     delete test_table;
 
     LOG_INFO("Shutdown System");
