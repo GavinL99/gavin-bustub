@@ -52,14 +52,15 @@ namespace bustub {
         flush_sz_ = 0;
       } else {
         if (buffer_used_ > 0) {
+          int temp_buffer_sz = buffer_used_;
+          buffer_used_ = 0;
           char *temp = log_buffer_;
           log_buffer_ = flush_buffer_;
           flush_buffer_ = temp;
           persistent_lsn_ = next_lsn_ - 1;
           lock.unlock();
-          LOG_DEBUG("Timeout flush.. %d\n", (int) buffer_used_);
-          disk_manager_->WriteLog(flush_buffer_, buffer_used_);
-          buffer_used_ = 0;
+          LOG_DEBUG("Timeout flush.. %d\n", temp_buffer_sz);
+          disk_manager_->WriteLog(flush_buffer_, temp_buffer_sz);
         } else {
           LOG_INFO("No log to flush...\n");
         }
