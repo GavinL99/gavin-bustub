@@ -27,7 +27,7 @@
 namespace bustub {
 
 
-TEST(RecoveryTest, DISABLED_FlushLogTest) {
+TEST(RecoveryTest, FlushLogTest) {
     remove("test.db");
     remove("test.log");
     BustubInstance *bustub_instance = new BustubInstance("test.db");
@@ -92,7 +92,7 @@ TEST(RecoveryTest, DISABLED_FlushLogTest) {
     remove("test.log");
   }
 
-TEST(RecoveryTest, DISABLED_SerializedTest) {
+TEST(RecoveryTest, SerializedTest) {
     remove("test.db");
     remove("test.log");
     BustubInstance *bustub_instance = new BustubInstance("test.db");
@@ -160,7 +160,7 @@ TEST(RecoveryTest, DISABLED_SerializedTest) {
   }
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, DISABLED_RedoTest) {
+TEST(RecoveryTest, RedoTest) {
   remove("test.db");
   remove("test.log");
 
@@ -258,7 +258,7 @@ TEST(RecoveryTest, DISABLED_RedoTest) {
 }
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, DISABLED_UndoTest) {
+TEST(RecoveryTest, UndoTest) {
   remove("test.db");
   remove("test.log");
   BustubInstance *bustub_instance = new BustubInstance("test.db");
@@ -632,7 +632,7 @@ TEST(RecoveryTest, MultiTxnTest) {
 
 
 // NOLINTNEXTLINE
-TEST(RecoveryTest, DISABLED_CheckpointTest) {
+TEST(RecoveryTest, CheckpointTest) {
   remove("test.db");
   remove("test.log");
   BustubInstance *bustub_instance = new BustubInstance("test.db");
