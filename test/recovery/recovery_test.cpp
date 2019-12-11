@@ -540,6 +540,7 @@ TEST(RecoveryTest, MultiTxnTest) {
     LOG_INFO("Create a test table");
     Transaction *txn = bustub_instance->transaction_manager_->Begin();
     Transaction *txn1 = bustub_instance->transaction_manager_->Begin();
+    Transaction *txn2 = bustub_instance->transaction_manager_->Begin();
 
     auto *test_table = new TableHeap(bustub_instance->buffer_pool_manager_, bustub_instance->lock_manager_,
                                      bustub_instance->log_manager_, txn);
@@ -561,19 +562,18 @@ TEST(RecoveryTest, MultiTxnTest) {
 
     EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
     EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid1, txn1));
-    EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid2, txn1));
-//    ASSERT_TRUE(test_table->GetTuple(rid, &old_tuple, txn));
-//    ASSERT_EQ(old_tuple.GetValue(&schema, 1).CompareEquals(val1_1), CmpBool::CmpTrue);
-//    ASSERT_EQ(old_tuple.GetValue(&schema, 0).CompareEquals(val1_0), CmpBool::CmpTrue);
+    EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid2, txn2));
+
     LOG_INFO("Table page content is written to disk");
     bustub_instance->buffer_pool_manager_->FlushPage(first_page_id);
 
     bustub_instance->transaction_manager_->Commit(txn);
     bustub_instance->transaction_manager_->Abort(txn1);
-    LOG_INFO("Commit txn, abort txn1");
+    LOG_INFO("Commit txn, abort txn1, txn2 crash");
 
     delete txn;
     delete txn1;
+    delete txn2;
     delete test_table;
 
     LOG_INFO("Shutdown System");
