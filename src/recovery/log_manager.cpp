@@ -57,7 +57,7 @@ namespace bustub {
           flush_buffer_ = temp;
           persistent_lsn_ = next_lsn_ - 1;
           lock.unlock();
-          LOG_DEBUG("Timeout flush..\n");
+          LOG_DEBUG("Timeout flush.. %d\n", (int) buffer_used_);
           disk_manager_->WriteLog(flush_buffer_, buffer_used_);
           buffer_used_ = 0;
         } else {
