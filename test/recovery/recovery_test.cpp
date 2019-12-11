@@ -545,7 +545,7 @@ TEST(RecoveryTest, MultiTxnTest) {
                                      bustub_instance->log_manager_, txn);
     page_id_t first_page_id = test_table->GetFirstPageId();
 
-    RID rid, rid1;
+    RID rid, rid1, rid2;
     Tuple old_tuple;
     Column col1{"a", TypeId::VARCHAR, 20};
     Column col2{"b", TypeId::SMALLINT};
@@ -561,6 +561,7 @@ TEST(RecoveryTest, MultiTxnTest) {
 
     EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
     EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid1, txn1));
+    EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid2, txn1));
 //    ASSERT_TRUE(test_table->GetTuple(rid, &old_tuple, txn));
 //    ASSERT_EQ(old_tuple.GetValue(&schema, 1).CompareEquals(val1_1), CmpBool::CmpTrue);
 //    ASSERT_EQ(old_tuple.GetValue(&schema, 0).CompareEquals(val1_0), CmpBool::CmpTrue);
@@ -568,6 +569,7 @@ TEST(RecoveryTest, MultiTxnTest) {
     bustub_instance->buffer_pool_manager_->FlushPage(first_page_id);
 
     bustub_instance->transaction_manager_->Commit(txn);
+    bustub_instance->transaction_manager_->Abort(txn1);
     LOG_INFO("Commit txn, abort txn1");
 
     delete txn;
@@ -587,6 +589,7 @@ TEST(RecoveryTest, MultiTxnTest) {
                                bustub_instance->log_manager_, first_page_id);
     ASSERT_TRUE(test_table->GetTuple(rid, &old_tuple, txn));
     ASSERT_TRUE(test_table->GetTuple(rid1, &old_tuple, txn));
+    ASSERT_TRUE(test_table->GetTuple(rid2, &old_tuple, txn));
     bustub_instance->transaction_manager_->Commit(txn);
     delete txn;
 
@@ -608,6 +611,7 @@ TEST(RecoveryTest, MultiTxnTest) {
 
     ASSERT_TRUE(test_table->GetTuple(rid, &old_tuple, txn));
     ASSERT_FALSE(test_table->GetTuple(rid1, &old_tuple, txn));
+    ASSERT_FALSE(test_table->GetTuple(rid2, &old_tuple, txn));
     bustub_instance->transaction_manager_->Commit(txn);
     delete txn;
     delete test_table;
