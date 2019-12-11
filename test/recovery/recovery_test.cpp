@@ -560,9 +560,15 @@ TEST(RecoveryTest, MultiTxnTest) {
     auto val1_1 = tuple1.GetValue(&schema, 1);
     auto val1_0 = tuple1.GetValue(&schema, 0);
 
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    LOG_INFO("Woke up after sleep!\n");
+
     EXPECT_TRUE(test_table->InsertTuple(tuple, &rid, txn));
     EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid1, txn1));
     EXPECT_TRUE(test_table->InsertTuple(tuple1, &rid2, txn2));
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    LOG_INFO("Woke up after sleep!\n");
 
     LOG_INFO("Table page content is written to disk");
     bustub_instance->buffer_pool_manager_->FlushPage(first_page_id);
