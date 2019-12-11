@@ -36,9 +36,13 @@ namespace bustub {
     while (enable_logging) {
       uniq_lock lock(latch_);
       // auto call unlock: deal with spurious wakeup
-      LOG_INFO("Flush helper waiting...\n");
+//      LOG_INFO("Flush helper waiting...\n");
       // if spurious wakeup, block again
-      flush_thread_cv_.wait_for(lock, log_timeout);
+      if (flush_thread_cv_.wait_for(lock, log_timeout) == std::cv_status::timeout) {
+        timeout_flag_ = true;
+        timeout_cv_.notify_all();
+      }
+
       LOG_DEBUG("Flush helper wake up...\n");
       // no need to swap and update buffer_used
       if (just_swapped) {
@@ -64,8 +68,11 @@ namespace bustub {
           LOG_DEBUG("Timeout flush.. %d\n", temp_buffer_sz);
           disk_manager_->WriteLog(flush_buffer_, temp_buffer_sz);
         } else {
-          LOG_INFO("No log to flush...\n");
+//          LOG_INFO("No log to flush...\n");
         }
+      }
+      if (timeout_flag_) {
+        timeout_flag_ = false;
       }
 
     }

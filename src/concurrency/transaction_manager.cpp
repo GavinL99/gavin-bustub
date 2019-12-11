@@ -57,14 +57,19 @@ void TransactionManager::Commit(Transaction *txn) {
   write_set->clear();
 
   if (enable_logging) {
-    if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
-      LOG_DEBUG("Commit Trigger Flush\n");
-      log_manager_->TriggerFlush(txn->GetPrevLSN());
-      assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
-    }
     LogRecord newLog(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::COMMIT);
     txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
     assert(txn->GetPrevLSN() != INVALID_LSN);
+    if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
+      std::mutex latch;
+      std::unique_lock<std::mutex> lock(latch);
+      while (!log_manager_->timeout_flag_) {
+        log_manager_->timeout_cv_.wait(lock);
+      }
+      LOG_DEBUG("Commit Trigger Group Flush\n");
+//      log_manager_->TriggerFlush(txn->GetPrevLSN());
+      assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
+    }
   }
 
   // Release all the locks.
@@ -94,14 +99,19 @@ void TransactionManager::Abort(Transaction *txn) {
   write_set->clear();
 
   if (enable_logging) {
-    if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
-      LOG_DEBUG("Commit Trigger Flush\n");
-      log_manager_->TriggerFlush(txn->GetPrevLSN());
-      assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
-    }
     LogRecord newLog(txn->GetTransactionId(), txn->GetPrevLSN(), LogRecordType::ABORT);
     txn->SetPrevLSN(log_manager_->AppendLogRecord(&newLog));
     assert(txn->GetPrevLSN() != INVALID_LSN);
+    if (txn->GetPrevLSN() > log_manager_->GetPersistentLSN()) {
+      std::mutex latch;
+      std::unique_lock<std::mutex> lock(latch);
+      while (!log_manager_->timeout_flag_) {
+        log_manager_->timeout_cv_.wait(lock);
+      }
+//      log_manager_->TriggerFlush(txn->GetPrevLSN());
+      LOG_DEBUG("Abort Trigger Group Flush\n");
+      assert(txn->GetPrevLSN() <= log_manager_->GetPersistentLSN());
+    }
   }
 
   // Release all the locks.

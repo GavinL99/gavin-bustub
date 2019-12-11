@@ -50,7 +50,7 @@ namespace bustub {
 
     assert(log_record->lsn_ != INVALID_LSN);
     assert(log_record->size_ > 0);
-    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
+//    LOG_DEBUG("Deserialize: %s\n", log_record->ToString().c_str());
 
     switch (log_record->log_record_type_) {
       case LogRecordType::INSERT:
@@ -127,7 +127,7 @@ namespace bustub {
     lsn_t temp_lsn = temp_log.lsn_;
     txn_id_t temp_txn = temp_log.txn_id_;
     LogRecordType temp_type = temp_log.log_record_type_;
-    LOG_DEBUG("Replay: %s\n", temp_log.ToString().c_str());
+//    LOG_DEBUG("Replay: %s\n", temp_log.ToString().c_str());
 
     if (temp_type == LogRecordType::COMMIT || temp_type == LogRecordType::ABORT) {
       active_txn_.erase(temp_txn);
@@ -257,7 +257,7 @@ namespace bustub {
           LOG_ERROR("Fail to deserialize log...\n");
           break;
         }
-        LOG_DEBUG("Undo: %s\n", temp_log.ToString().c_str());
+//        LOG_DEBUG("Undo: %s\n", temp_log.ToString().c_str());
         assert(temp_log.lsn_ == temp_lsn);
         LogRecordType temp_type = temp_log.log_record_type_;
 

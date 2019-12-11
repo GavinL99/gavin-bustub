@@ -29,7 +29,7 @@ namespace bustub {
 class LogManager {
  public:
   explicit LogManager(DiskManager *disk_manager)
-      : next_lsn_(0), persistent_lsn_(INVALID_LSN), disk_manager_(disk_manager), buffer_used_(0) {
+      : timeout_flag_{false}, next_lsn_(0), persistent_lsn_(INVALID_LSN), disk_manager_(disk_manager), buffer_used_(0) {
     log_buffer_ = new char[LOG_BUFFER_SIZE];
     flush_buffer_ = new char[LOG_BUFFER_SIZE];
   }
@@ -55,6 +55,10 @@ class LogManager {
   inline char *GetLogBuffer() { return log_buffer_; }
 
   static void SerializeLog(char *data, LogRecord *log_record);
+
+
+  std::condition_variable timeout_cv_;
+  bool timeout_flag_;
 
  private:
   using uniq_lock = std::unique_lock<std::mutex>;
@@ -86,6 +90,7 @@ class LogManager {
   std::condition_variable flush_thread_cv_;
 
   bool just_swapped = false;
+
 
   DiskManager *disk_manager_ __attribute__((__unused__));
 
