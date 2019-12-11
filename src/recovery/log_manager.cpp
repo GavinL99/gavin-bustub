@@ -42,7 +42,7 @@ namespace bustub {
       LOG_DEBUG("Flush helper wake up...\n");
       // no need to swap and update buffer_used
       if (just_swapped) {
-        LOG_DEBUG("Flush from append async flush\n");
+        LOG_DEBUG("Flush from append async flush: %d\n", flush_sz_);
         // async no need to block
         lock.unlock();
         just_swapped = false;
@@ -59,6 +59,7 @@ namespace bustub {
           lock.unlock();
           LOG_DEBUG("Timeout flush..\n");
           disk_manager_->WriteLog(flush_buffer_, buffer_used_);
+          buffer_used_ = 0;
         } else {
           LOG_INFO("No log to flush...\n");
         }
